@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { Check, X, RotateCcw, ChevronRight, Trophy } from "lucide-react";
-import { DOMAINS, TOTAL_OBJECTIVES, allObjectives } from "../data/domains.js";
-import { QUIZ, shuffle } from "../data/quiz.js";
+import { shuffle } from "../data/quiz.js";
+import { useLocale } from "../i18n/LocaleContext.jsx";
 
 export default function QuizMode({ dark }) {
+  const { domains, quiz, totalObjectives, allObjectives, ui } = useLocale();
   const [filter, setFilter] = useState("all"); // domain id or "all"
-  const [order, setOrder] = useState(() => shuffle(QUIZ.map((q) => q.id)));
+  const [order, setOrder] = useState(() => shuffle(quiz.map((q) => q.id)));
   const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState(null);
   const [correct, setCorrect] = useState(0);
@@ -18,22 +19,22 @@ export default function QuizMode({ dark }) {
 
   const pool = useMemo(() => {
     const ids = order
-      .map((id) => QUIZ.find((q) => q.id === id))
+      .map((id) => quiz.find((q) => q.id === id))
       .filter(Boolean)
       .filter((q) => filter === "all" || q.obj.startsWith(String(filter)));
     return ids;
-  }, [filter, order]);
+  }, [filter, order, quiz]);
   const objectiveLookup = useMemo(
-    () => Object.fromEntries(allObjectives().map((objective) => [objective.id, objective])),
-    []
+    () => Object.fromEntries(allObjectives.map((objective) => [objective.id, objective])),
+    [allObjectives]
   );
-  const coveredObjectives = useMemo(() => new Set(QUIZ.map((question) => question.obj)).size, []);
+  const coveredObjectives = useMemo(() => new Set(quiz.map((question) => question.obj)).size, [quiz]);
 
   const q = pool[idx];
   const objective = q ? objectiveLookup[q.obj] : null;
 
   const reset = (nextFilter = filter) => {
-    setOrder(shuffle(QUIZ.map((x) => x.id)));
+    setOrder(shuffle(quiz.map((x) => x.id)));
     setIdx(0);
     setPicked(null);
     setCorrect(0);
@@ -59,30 +60,30 @@ export default function QuizMode({ dark }) {
   };
 
   if (!q && !finished) {
-    return <div className={`text-center ${t2} py-10 text-sm`}>No questions for this domain yet.</div>;
+    return <div className={`text-center ${t2} py-10 text-sm`}>{ui.labels.noQuestions}</div>;
   }
 
   if (finished) {
     const pct = Math.round((correct / Math.max(answered, 1)) * 100);
     const band =
-      pct >= 85 ? { title: "Strong recall", color: "text-green-500", icon: "text-emerald-400" }
-      : pct >= 65 ? { title: "Solid base", color: "text-amber-500", icon: "text-amber-400" }
-      : { title: "Keep drilling", color: t2, icon: "text-gray-400" };
+      pct >= 85 ? { title: ui.labels.strongRecall, color: "text-green-500", icon: "text-emerald-400" }
+      : pct >= 65 ? { title: ui.labels.solidBase, color: "text-amber-500", icon: "text-amber-400" }
+      : { title: ui.labels.keepDrilling, color: t2, icon: "text-gray-400" };
     return (
       <div className={`${card} border ${brd} rounded-2xl p-8 max-w-lg mx-auto text-center animate-fade-in`}>
         <Trophy size={48} className={`mx-auto mb-3 ${band.icon}`} />
         <div className="text-2xl font-bold mb-1">{band.title}</div>
         <div className={`text-sm ${t2} mb-4`}>
-          {correct} / {answered} correct · <span className={band.color}>{pct}%</span>
+          {ui.labels.correctProgress(correct, answered)} · <span className={band.color}>{pct}%</span>
         </div>
         <div className={`text-xs leading-6 ${t2} mb-5`}>
-          This quiz is a study aid. Official exam scoring is determined by HashiCorp, and the live exam can mix question styles beyond this single-answer practice mode.
+          {ui.labels.quizStudyAid}
         </div>
         <button
           onClick={() => reset()}
           className="px-4 py-2 rounded-lg font-semibold text-sm bg-violet-500 text-white hover:bg-violet-600 transition"
         >
-          <RotateCcw size={14} className="inline-block mr-1" /> Retry
+          <RotateCcw size={14} className="inline-block mr-1" /> {ui.actions.retry}
         </button>
       </div>
     );
@@ -96,9 +97,9 @@ export default function QuizMode({ dark }) {
         <button
           onClick={() => reset("all")}
           className={`text-[11px] px-2.5 py-1 rounded border ${filter === "all" ? "bg-violet-500 text-white border-violet-500" : `${card} ${brd}`}`}
-        >All ({QUIZ.length})</button>
-        {DOMAINS.map((d) => {
-          const n = QUIZ.filter((q) => q.obj.startsWith(String(d.id))).length;
+        >{ui.labels.all} ({quiz.length})</button>
+        {domains.map((d) => {
+          const n = quiz.filter((q) => q.obj.startsWith(String(d.id))).length;
           if (!n) return null;
           return (
             <button
@@ -112,13 +113,13 @@ export default function QuizMode({ dark }) {
       </div>
 
       <div className={`text-[11px] ${t2} mb-3`}>
-        Single-answer practice mode · {coveredObjectives} / {TOTAL_OBJECTIVES} objectives covered · official exam questions may also include other formats.
+        {ui.labels.singleAnswerMode} · {coveredObjectives} / {totalObjectives} {ui.labels.objectives}
       </div>
 
       {/* Progress */}
       <div className={`text-[11px] ${t2} mb-2 flex justify-between`}>
-        <span>Question {idx + 1} / {pool.length}</span>
-        <span>{correct} / {answered} correct</span>
+        <span>{ui.labels.questionProgress(idx + 1, pool.length)}</span>
+        <span>{ui.labels.correctProgress(correct, answered)}</span>
       </div>
       <div className={`h-1 ${dark ? "bg-ink-400" : "bg-gray-200"} rounded overflow-hidden mb-4`}>
         <div className="h-full bg-violet-500 transition-all" style={{ width: `${((idx) / pool.length) * 100}%` }} />
@@ -127,7 +128,7 @@ export default function QuizMode({ dark }) {
       {/* Card */}
       <div className={`${card} border ${brd} rounded-2xl p-6 animate-fade-in`}>
         <div className={`text-[10px] ${t2} mb-2 tracking-wider uppercase`}>
-          Objective {q.obj}{objective ? ` · ${objective.title}` : ""}
+          {ui.labels.objective} {q.obj}{objective ? ` · ${objective.title}` : ""}
         </div>
         <div className="text-base font-semibold leading-7 mb-5">{q.question}</div>
 
@@ -159,7 +160,7 @@ export default function QuizMode({ dark }) {
 
         {picked !== null && (
           <div className={`mt-4 p-3 rounded-lg text-xs leading-6 ${isCorrect ? "bg-green-500/10 text-green-300" : "bg-red-500/10 text-red-300"}`}>
-            <strong>{isCorrect ? "Correct! " : "Not quite. "}</strong>{q.explain}
+            <strong>{isCorrect ? `${ui.labels.correctAnswer} ` : `${ui.labels.incorrectAnswer} `}</strong>{q.explain}
           </div>
         )}
 
@@ -169,7 +170,7 @@ export default function QuizMode({ dark }) {
               onClick={next}
               className="px-4 py-2 rounded-lg text-sm font-semibold bg-violet-500 text-white hover:bg-violet-600 transition flex items-center gap-1"
             >
-              {idx + 1 >= pool.length ? "See results" : "Next"} <ChevronRight size={14} />
+              {idx + 1 >= pool.length ? ui.labels.seeResults : ui.actions.next} <ChevronRight size={14} />
             </button>
           )}
         </div>

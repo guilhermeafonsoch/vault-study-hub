@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Play, Pause, RotateCcw, Timer } from "lucide-react";
+import { useLocale } from "../i18n/LocaleContext.jsx";
 
 /**
  * Simple Pomodoro-style study timer. 25 min focus by default.
  * Fires an alert when it reaches 0.
  */
 export default function StudyTimer({ dark }) {
+  const { ui } = useLocale();
   const [remaining, setRemaining] = useState(25 * 60);
   const [running, setRunning] = useState(false);
   const [preset, setPreset] = useState(25);
@@ -43,11 +45,11 @@ export default function StudyTimer({ dark }) {
       <button
         onClick={() => setRunning((r) => !r)}
         className={`ml-1 p-1 rounded hover:bg-violet-500 hover:text-white transition`}
-        aria-label={running ? "Pause" : "Start"}
+        aria-label={running ? ui.actions.pause : ui.actions.start}
       >
         {running ? <Pause size={12} /> : <Play size={12} />}
       </button>
-      <button onClick={() => reset()} className="p-1 rounded hover:bg-violet-500 hover:text-white transition" aria-label="Reset">
+      <button onClick={() => reset()} className="p-1 rounded hover:bg-violet-500 hover:text-white transition" aria-label={ui.actions.reset}>
         <RotateCcw size={12} />
       </button>
       <div className="flex gap-0.5 ml-1">

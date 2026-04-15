@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, RotateCcw, Shuffle } from "lucide-react";
-import { DOMAINS, allObjectives } from "../data/domains.js";
 import { shuffle } from "../data/quiz.js";
-import { OBJECTIVE_GUIDE } from "../data/studyGuide.js";
+import { useLocale } from "../i18n/LocaleContext.jsx";
 
 export default function FlashcardMode({ dark, studied, markObj }) {
+  const { domains, allObjectives, objectiveGuide, ui } = useLocale();
   const [filter, setFilter] = useState("all");
-  const [order, setOrder] = useState(() => allObjectives().map((_, i) => i));
+  const [order, setOrder] = useState(() => allObjectives.map((_, i) => i));
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
 
@@ -15,23 +15,23 @@ export default function FlashcardMode({ dark, studied, markObj }) {
   const t2 = dark ? "text-gray-400" : "text-gray-500";
 
   const cards = useMemo(() => {
-    const all = allObjectives();
+    const all = allObjectives;
     return order
       .map((i) => all[i])
       .filter(Boolean)
       .filter((o) => filter === "all" || o.domain.id === filter);
-  }, [order, filter]);
+  }, [allObjectives, filter, order]);
 
   const c = cards[idx];
-  const note = c ? OBJECTIVE_GUIDE[c.id] : null;
+  const note = c ? objectiveGuide[c.id] : null;
 
   const reshuffle = () => {
-    setOrder(shuffle(allObjectives().map((_, i) => i)));
+    setOrder(shuffle(allObjectives.map((_, i) => i)));
     setIdx(0);
     setFlipped(false);
   };
 
-  if (!c) return <div className={`text-center ${t2} py-10 text-sm`}>No cards.</div>;
+  if (!c) return <div className={`text-center ${t2} py-10 text-sm`}>{ui.labels.noCards}</div>;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -39,8 +39,8 @@ export default function FlashcardMode({ dark, studied, markObj }) {
         <button
           onClick={() => { setFilter("all"); setIdx(0); setFlipped(false); }}
           className={`text-[11px] px-2.5 py-1 rounded border ${filter === "all" ? "bg-violet-500 text-white border-violet-500" : `${card} ${brd}`}`}
-        >All ({allObjectives().length})</button>
-        {DOMAINS.map((d) => (
+        >{ui.labels.all} ({allObjectives.length})</button>
+        {domains.map((d) => (
           <button
             key={d.id}
             onClick={() => { setFilter(d.id); setIdx(0); setFlipped(false); }}
@@ -49,13 +49,13 @@ export default function FlashcardMode({ dark, studied, markObj }) {
           >{d.icon} D{d.id}</button>
         ))}
         <button onClick={reshuffle} className={`text-[11px] px-2.5 py-1 rounded border ${card} ${brd} flex items-center gap-1 ml-auto`}>
-          <Shuffle size={11} /> Shuffle
+          <Shuffle size={11} /> {ui.actions.shuffle}
         </button>
       </div>
 
-      <div className={`text-[11px] ${t2} mb-2`}>Card {idx + 1} / {cards.length}</div>
+      <div className={`text-[11px] ${t2} mb-2`}>{ui.labels.cardProgress(idx + 1, cards.length)}</div>
       <div className={`text-[11px] ${t2} mb-3`}>
-        Flashcards cover all official objectives. Try answering out loud before you flip.
+        {ui.labels.flashcardHint}
       </div>
 
       <button
@@ -66,8 +66,8 @@ export default function FlashcardMode({ dark, studied, markObj }) {
         <div className="flex items-center gap-2 mb-3">
           <span className="text-2xl">{c.domain.icon}</span>
           <div>
-            <div className="text-[10px] tracking-wider font-bold" style={{ color: c.domain.color }}>DOMAIN {c.domain.id} · {c.id}</div>
-            <div className="text-xs opacity-60">{flipped ? "Answer" : "Prompt"} — click to flip</div>
+            <div className="text-[10px] tracking-wider font-bold" style={{ color: c.domain.color }}>{ui.labels.domain.toUpperCase()} {c.domain.id} · {c.id}</div>
+            <div className="text-xs opacity-60">{flipped ? ui.labels.answer : ui.labels.prompt} — {ui.labels.clickToFlip}</div>
           </div>
         </div>
 
@@ -75,14 +75,14 @@ export default function FlashcardMode({ dark, studied, markObj }) {
           <div className="py-4">
             <div className="text-xl font-semibold leading-8">{c.title}?</div>
             <div className={`text-sm leading-7 mt-3 ${t2}`}>
-              Explain the objective, the best use case, and the main contrast or trap without looking.
+              {ui.labels.flashcardPromptHint}
             </div>
           </div>
         ) : (
           <div className="animate-fade-in">
             {note?.remember && (
               <div className={`mb-4 text-sm leading-6 p-3 rounded-lg ${dark ? "bg-emerald-950/30 text-emerald-200" : "bg-emerald-50 text-emerald-900"}`} style={{ borderLeft: `2px solid ${c.domain.color}` }}>
-                <strong>Remember: </strong>{note.remember}
+                <strong>{ui.labels.remember}: </strong>{note.remember}
               </div>
             )}
             {note?.explanation && (
@@ -95,11 +95,11 @@ export default function FlashcardMode({ dark, studied, markObj }) {
             </ul>
             {note?.examCue && (
               <div className={`text-[11px] p-2 rounded mb-3 ${dark ? "bg-violet-950/30 text-violet-200" : "bg-violet-50 text-violet-900"} leading-5`} style={{ borderLeft: `2px solid ${c.domain.color}` }}>
-                <strong>Exam cue: </strong>{note.examCue}
+                <strong>{ui.labels.examCue}: </strong>{note.examCue}
               </div>
             )}
             <div className={`text-[11px] p-2 rounded ${dark ? "bg-amber-950/30 text-amber-200" : "bg-amber-50 text-amber-900"} leading-5`} style={{ borderLeft: "2px solid #eab308" }}>
-              <strong>{note?.pitfalls?.length ? "Trap: " : "Tip: "}</strong>{note?.pitfalls?.[0] ?? c.tip}
+              <strong>{note?.pitfalls?.length ? `${ui.labels.trap}: ` : `${ui.labels.examTip}: `}</strong>{note?.pitfalls?.[0] ?? c.tip}
             </div>
           </div>
         )}
@@ -111,26 +111,26 @@ export default function FlashcardMode({ dark, studied, markObj }) {
           disabled={idx === 0}
           className={`px-3 py-2 rounded-lg border ${card} ${brd} text-xs font-medium flex items-center gap-1 disabled:opacity-30`}
         >
-          <ChevronLeft size={14} /> Prev
+          <ChevronLeft size={14} /> {ui.actions.prev}
         </button>
         <button
           onClick={() => markObj(c.id)}
           className={`px-3 py-2 rounded-lg border text-xs font-medium ${studied[c.id] ? "bg-green-500 text-white border-green-500" : `${card} ${brd}`}`}
         >
-          {studied[c.id] ? "✓ Studied" : "Mark studied"}
+          {studied[c.id] ? `✓ ${ui.actions.studied}` : ui.actions.markStudied}
         </button>
         <button
           onClick={() => setFlipped((f) => !f)}
           className={`px-3 py-2 rounded-lg border ${card} ${brd} text-xs font-medium flex items-center gap-1`}
         >
-          <RotateCcw size={14} /> Flip
+          <RotateCcw size={14} /> {ui.actions.flip}
         </button>
         <button
           onClick={() => { setIdx((i) => Math.min(cards.length - 1, i + 1)); setFlipped(false); }}
           disabled={idx >= cards.length - 1}
           className={`px-3 py-2 rounded-lg border ${card} ${brd} text-xs font-medium flex items-center gap-1 disabled:opacity-30`}
         >
-          Next <ChevronRight size={14} />
+          {ui.actions.next} <ChevronRight size={14} />
         </button>
       </div>
     </div>

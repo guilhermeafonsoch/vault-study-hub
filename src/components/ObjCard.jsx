@@ -1,13 +1,13 @@
 import { ChevronDown, ChevronRight, CheckCircle2, Circle, Terminal, AlertTriangle } from "lucide-react";
-import { DIFFICULTY } from "../data/domains.js";
-import { OBJECTIVE_GUIDE } from "../data/studyGuide.js";
+import { useLocale } from "../i18n/LocaleContext.jsx";
 
 export default function ObjCard({ o, d, expanded, toggle, studied, mark, dark }) {
+  const { difficulty, objectiveGuide, ui } = useLocale();
   const card = dark ? "bg-ink-600" : "bg-white";
   const brd = dark ? "border-ink-400" : "border-gray-200";
   const t1 = dark ? "text-gray-100" : "text-gray-900";
   const t2 = dark ? "text-gray-400" : "text-gray-500";
-  const note = OBJECTIVE_GUIDE[o.id];
+  const note = objectiveGuide[o.id];
 
   return (
     <div className={`${card} border ${brd} rounded-xl mb-2 overflow-hidden transition-all hover:shadow-lg`}>
@@ -18,11 +18,11 @@ export default function ObjCard({ o, d, expanded, toggle, studied, mark, dark })
         {expanded ? <ChevronDown size={14} className={t2} /> : <ChevronRight size={14} className={t2} />}
         <span className="text-xs font-bold min-w-[24px]" style={{ color: d.color }}>{o.id}</span>
         <span className={`text-[13px] font-medium flex-1 ${t1}`}>{o.title}</span>
-        <span className="text-[10px] mr-2 whitespace-nowrap">{DIFFICULTY[o.diff]}</span>
+        <span className="text-[10px] mr-2 whitespace-nowrap">{difficulty[o.diff]}</span>
         <button
           onClick={(e) => { e.stopPropagation(); mark(o.id); }}
           className="bg-transparent border-0 cursor-pointer p-0 flex"
-          aria-label={studied ? "Mark as unstudied" : "Mark as studied"}
+          aria-label={studied ? `${ui.actions.studied}` : `${ui.actions.markStudied}`}
         >
           {studied
             ? <CheckCircle2 size={18} className="text-green-500" />
@@ -34,7 +34,7 @@ export default function ObjCard({ o, d, expanded, toggle, studied, mark, dark })
         <div className={`px-4 pb-4 border-t ${brd} animate-fade-in`}>
           {note?.explanation && (
             <div className="mt-3">
-              <div className={`text-[11px] font-semibold ${t2} mb-2 uppercase tracking-wider`}>Explanation</div>
+              <div className={`text-[11px] font-semibold ${t2} mb-2 uppercase tracking-wider`}>{ui.labels.explanation}</div>
               <div className={`text-xs leading-6 ${t1} px-3 py-2.5 rounded-lg ${dark ? "bg-ink-800" : "bg-gray-50"}`} style={{ borderLeft: `3px solid ${d.color}` }}>
                 {note.explanation}
               </div>
@@ -47,13 +47,13 @@ export default function ObjCard({ o, d, expanded, toggle, studied, mark, dark })
               style={{ borderLeft: "3px solid #10b981" }}
             >
               <div className="text-xs leading-6">
-                <strong>How the exam asks it: </strong>{note.examCue}
+                <strong>{ui.labels.examAsks}: </strong>{note.examCue}
               </div>
             </div>
           )}
 
           <div className="mt-3">
-            <div className={`text-[11px] font-semibold ${t2} mb-2 uppercase tracking-wider`}>Key concepts</div>
+            <div className={`text-[11px] font-semibold ${t2} mb-2 uppercase tracking-wider`}>{ui.labels.keyConcepts}</div>
             {o.concepts.map((c, i) => (
               <div
                 key={i}
@@ -66,7 +66,7 @@ export default function ObjCard({ o, d, expanded, toggle, studied, mark, dark })
           {o.cli.length > 0 && (
             <div className="mt-3">
               <div className={`text-[11px] font-semibold ${t2} mb-2 flex items-center gap-1 uppercase tracking-wider`}>
-                <Terminal size={10} />CLI / Code
+                <Terminal size={10} />{ui.labels.cliCode}
               </div>
               {o.cli.map((c, i) => (
                 <pre
@@ -79,7 +79,7 @@ export default function ObjCard({ o, d, expanded, toggle, studied, mark, dark })
 
           {note?.pitfalls?.length > 0 && (
             <div className="mt-3">
-              <div className={`text-[11px] font-semibold ${t2} mb-2 uppercase tracking-wider`}>Common traps</div>
+              <div className={`text-[11px] font-semibold ${t2} mb-2 uppercase tracking-wider`}>{ui.labels.commonTraps}</div>
               {note.pitfalls.map((item) => (
                 <div
                   key={item}
@@ -98,7 +98,7 @@ export default function ObjCard({ o, d, expanded, toggle, studied, mark, dark })
               style={{ borderLeft: `3px solid ${d.color}` }}
             >
               <div className="text-xs leading-6">
-                <strong>Remember: </strong>{note.remember}
+                <strong>{ui.labels.remember}: </strong>{note.remember}
               </div>
             </div>
           )}
@@ -109,7 +109,7 @@ export default function ObjCard({ o, d, expanded, toggle, studied, mark, dark })
           >
             <AlertTriangle size={14} className="text-amber-500 flex-shrink-0 mt-0.5" />
             <div className="text-xs leading-6">
-              <strong>Exam tip: </strong>{o.tip}
+              <strong>{ui.labels.examTip}: </strong>{o.tip}
             </div>
           </div>
         </div>

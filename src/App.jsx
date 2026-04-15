@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Search, Moon, Sun, BookOpen, LayoutGrid, ArrowLeft, Map, Brain, Zap, BarChart3, KeyRound, Trash2, FileText,
+  Search, Moon, Sun, BookOpen, LayoutGrid, ArrowLeft, Map, Brain, Zap, BarChart3, KeyRound, Trash2, FileText, Languages,
 } from "lucide-react";
-import { DOMAINS, TOTAL_OBJECTIVES } from "./data/domains.js";
-import { OBJECTIVE_GUIDE } from "./data/studyGuide.js";
 import { usePersistedState } from "./hooks/usePersistedState.js";
 import RadialMap from "./components/RadialMap.jsx";
 import DomainGrid from "./components/DomainGrid.jsx";
@@ -15,24 +13,26 @@ import SearchResults from "./components/SearchResults.jsx";
 import StudyTimer from "./components/StudyTimer.jsx";
 import StatsDashboard from "./components/StatsDashboard.jsx";
 import StudyGuide from "./components/StudyGuide.jsx";
-
-const VIEWS = [
-  ["guide", FileText, "Guide"],
-  ["map", Map, "Mind Map"],
-  ["grid", LayoutGrid, "Grid"],
-  ["cheat", BookOpen, "Cheat"],
-  ["flash", Zap, "Flashcards"],
-  ["quiz", Brain, "Quiz"],
-  ["stats", BarChart3, "Stats"],
-];
+import { useLocale } from "./i18n/LocaleContext.jsx";
+import { readinessLabel } from "./i18n/ui.js";
 
 export default function App() {
+  const { locale, setLocale, ui, languages, domains, objectiveGuide, totalObjectives } = useLocale();
   const [dark, setDark] = usePersistedState("vh.dark", true);
   const [view, setView] = useState("guide");
   const [activeDomain, setActiveDomain] = useState(null);
   const [expandedObj, setExpandedObj] = useState({});
   const [studied, setStudied] = usePersistedState("vh.studied", {});
   const [search, setSearch] = useState("");
+  const VIEWS = useMemo(() => ([
+    ["guide", FileText, ui.views.guide],
+    ["map", Map, ui.views.map],
+    ["grid", LayoutGrid, ui.views.grid],
+    ["cheat", BookOpen, ui.views.cheat],
+    ["flash", Zap, ui.views.flash],
+    ["quiz", Brain, ui.views.quiz],
+    ["stats", BarChart3, ui.views.stats],
+  ]), [ui.views]);
 
   const toggleObj = useCallback((id) => setExpandedObj((p) => ({ ...p, [id]: !p[id] })), []);
   const markObj = useCallback((id) => setStudied((p) => ({ ...p, [id]: !p[id] })), [setStudied]);
@@ -42,27 +42,27 @@ export default function App() {
   }, [studied]);
 
   const studiedCount = useMemo(() => Object.values(studied).filter(Boolean).length, [studied]);
-  const pct = Math.round((studiedCount / TOTAL_OBJECTIVES) * 100);
-  const readiness = pct < 30 ? "Foundations" : pct < 60 ? "Building recall" : pct < 85 ? "Solid coverage" : "Final review";
+  const pct = Math.round((studiedCount / totalObjectives) * 100);
+  const readiness = readinessLabel(locale, pct);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return DOMAINS;
-    return DOMAINS.map((d) => ({
+    if (!q) return domains;
+    return domains.map((d) => ({
       ...d,
       objectives: d.objectives.filter((o) =>
         o.title.toLowerCase().includes(q) ||
         o.concepts.some((c) => c.toLowerCase().includes(q)) ||
         o.cli.some((c) => c.toLowerCase().includes(q)) ||
         o.tip.toLowerCase().includes(q) ||
-        (OBJECTIVE_GUIDE[o.id]?.explanation || "").toLowerCase().includes(q) ||
-        (OBJECTIVE_GUIDE[o.id]?.examCue || "").toLowerCase().includes(q) ||
-        (OBJECTIVE_GUIDE[o.id]?.remember || "").toLowerCase().includes(q) ||
-        (OBJECTIVE_GUIDE[o.id]?.pitfalls || []).some((item) => item.toLowerCase().includes(q)) ||
+        (objectiveGuide[o.id]?.explanation || "").toLowerCase().includes(q) ||
+        (objectiveGuide[o.id]?.examCue || "").toLowerCase().includes(q) ||
+        (objectiveGuide[o.id]?.remember || "").toLowerCase().includes(q) ||
+        (objectiveGuide[o.id]?.pitfalls || []).some((item) => item.toLowerCase().includes(q)) ||
         o.id.includes(q)
       ),
     })).filter((d) => d.objectives.length > 0);
-  }, [search]);
+  }, [domains, objectiveGuide, search]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -80,7 +80,7 @@ export default function App() {
 
   const openDomain = (d) => { setActiveDomain(d); };
   const resetProgress = () => {
-    if (confirm("Clear all studied progress? This cannot be undone.")) setStudied({});
+    if (confirm(ui.actions.resetConfirm)) setStudied({});
   };
 
   // Tokens
@@ -102,12 +102,12 @@ export default function App() {
             onClick={() => setActiveDomain(null)}
             className={`flex items-center gap-1 text-sm px-2 py-1 rounded ${btn}`}
           >
-            <ArrowLeft size={14} /> Back
+            <ArrowLeft size={14} /> {ui.actions.back}
           </button>
         )}
         <div className="flex items-center gap-2 flex-1 min-w-[200px]">
           <KeyRound size={18} className="text-violet-400" />
-          <span className="font-bold text-base">Vault Study Hub</span>
+          <span className="font-bold text-base">{ui.appTitle}</span>
           <span className={`text-[10px] ${dark ? "bg-ink-400" : "bg-gray-200"} px-1.5 py-0.5 rounded`}>003 · v1.16</span>
         </div>
 
@@ -117,12 +117,30 @@ export default function App() {
             id="search-input"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search topics, commands, tips…  ( / )"
+            placeholder={ui.labels.searchPlaceholder}
             className={`${input} border ${brd} rounded-md px-2.5 py-1 text-xs flex-1 outline-none focus:border-violet-400 transition`}
           />
         </div>
 
         <StudyTimer dark={dark} />
+
+        <div className={`flex items-center gap-1 border ${brd} rounded-md px-2 py-1 ${dark ? "bg-ink-600" : "bg-white"}`}>
+          <Languages size={12} className={dark ? "text-gray-400" : "text-gray-500"} />
+          <label className="sr-only" htmlFor="locale-select">{ui.labels.language}</label>
+          <select
+            id="locale-select"
+            value={locale}
+            onChange={(e) => setLocale(e.target.value)}
+            className={`text-[11px] bg-transparent outline-none ${dark ? "text-gray-100" : "text-gray-900"}`}
+            aria-label={ui.labels.language}
+          >
+            {languages.map((language) => (
+              <option key={language.id} value={language.id}>
+                {language.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <nav className="flex items-center gap-1 flex-wrap">
           {VIEWS.map(([v, Icon, label], i) => (
@@ -137,14 +155,14 @@ export default function App() {
           ))}
           <button
             onClick={resetProgress}
-            title="Reset progress"
+            title={ui.actions.resetProgress}
             className={`p-1.5 rounded border ${brd} ${btn}`}
           >
             <Trash2 size={12} />
           </button>
           <button
             onClick={() => setDark(!dark)}
-            title="Toggle theme (T)"
+            title={`${ui.actions.toggleTheme} (T)`}
             className={`p-1.5 rounded border ${brd} ${btn}`}
           >
             {dark ? <Sun size={13} /> : <Moon size={13} />}
@@ -164,16 +182,16 @@ export default function App() {
               }}
             />
           </div>
-          <span className="text-[11px] text-gray-400">{studiedCount}/{TOTAL_OBJECTIVES}</span>
+          <span className="text-[11px] text-gray-400">{studiedCount}/{totalObjectives}</span>
         </div>
         <span className={`text-[11px] font-semibold ${pct >= 85 ? "text-green-500" : pct >= 50 ? "text-amber-500" : "text-violet-400"}`}>
           {pct}% · {readiness}
         </span>
         <span className="text-[10px] text-gray-400 ml-auto hidden md:inline">
-          Shortcuts: <kbd className="px-1 bg-ink-400 rounded">1–7</kbd> views ·
-          <kbd className="px-1 bg-ink-400 rounded ml-1">/</kbd> search ·
-          <kbd className="px-1 bg-ink-400 rounded ml-1">T</kbd> theme ·
-          <kbd className="px-1 bg-ink-400 rounded ml-1">Esc</kbd> back
+          {ui.labels.shortcuts}: <kbd className="px-1 bg-ink-400 rounded">1–7</kbd> {ui.labels.viewsShortcut} ·
+          <kbd className="px-1 bg-ink-400 rounded ml-1">/</kbd> {ui.labels.search} ·
+          <kbd className="px-1 bg-ink-400 rounded ml-1">T</kbd> {ui.labels.theme} ·
+          <kbd className="px-1 bg-ink-400 rounded ml-1">Esc</kbd> {ui.labels.backShortcut}
         </span>
       </div>
 
@@ -235,12 +253,12 @@ export default function App() {
       </main>
 
       <footer className={`text-center text-[10px] ${dark ? "text-gray-500" : "text-gray-400"} py-6`}>
-        Built for the HashiCorp Vault Associate (003) exam · Content based on Vault 1.16 docs ·{" "}
+        {ui.labels.builtFor} · {ui.labels.contentBasedOn} ·{" "}
         <a
           href="https://developer.hashicorp.com/vault/tutorials/associate-cert-003/associate-review-003"
           target="_blank" rel="noreferrer"
           className="underline hover:text-violet-400"
-        >Official objectives</a>
+        >{ui.labels.officialObjectives}</a>
       </footer>
     </div>
   );

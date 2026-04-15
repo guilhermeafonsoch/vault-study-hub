@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { DOMAINS, CONNECTIONS } from "../data/domains.js";
-import { DOMAIN_GUIDES } from "../data/studyGuide.js";
+import { useLocale } from "../i18n/LocaleContext.jsx";
 
 export default function RadialMap({ studied, onSelect, dark, domainProgress }) {
+  const { domains, connections, domainGuides, ui } = useLocale();
   const containerRef = useRef(null);
   const [dims, setDims] = useState({ w: 680, h: 600 });
   const [hovered, setHovered] = useState(null);
@@ -25,11 +25,11 @@ export default function RadialMap({ studied, onSelect, dark, domainProgress }) {
 
   const positions = useMemo(
     () =>
-      DOMAINS.map((_, i) => {
-        const angle = (i / DOMAINS.length) * Math.PI * 2 - Math.PI / 2;
+      domains.map((_, i) => {
+        const angle = (i / domains.length) * Math.PI * 2 - Math.PI / 2;
         return { x: cx + R * Math.cos(angle), y: cy + R * Math.sin(angle) };
       }),
-    [cx, cy, R]
+    [cx, cy, domains, R]
   );
 
   const stroke = dark ? "#333946" : "#cbd5e1";
@@ -39,15 +39,15 @@ export default function RadialMap({ studied, onSelect, dark, domainProgress }) {
   const subLabel = dark ? "#9ca3af" : "#6b7280";
   const card = dark ? "bg-ink-600 border-ink-400" : "bg-white border-gray-200";
   const muted = dark ? "text-gray-400" : "text-gray-500";
-  const activeDomain = hovered ? DOMAINS.find((domain) => domain.id === hovered) : null;
-  const activeGuide = activeDomain ? DOMAIN_GUIDES[activeDomain.id] : null;
+  const activeDomain = hovered ? domains.find((domain) => domain.id === hovered) : null;
+  const activeGuide = activeDomain ? domainGuides[activeDomain.id] : null;
 
   return (
     <div ref={containerRef} className="w-full relative">
       <svg width={dims.w} height={dims.h} className="block mx-auto">
         <defs>
           <filter id="glow"><feGaussianBlur stdDeviation="3" result="g" /><feMerge><feMergeNode in="g" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
-          {DOMAINS.map((d) => (
+          {domains.map((d) => (
             <radialGradient key={`rg${d.id}`} id={`rg${d.id}`}>
               <stop offset="0%" stopColor={d.color} stopOpacity={dark ? 0.3 : 0.15} />
               <stop offset="100%" stopColor={d.color} stopOpacity={0} />
@@ -56,11 +56,11 @@ export default function RadialMap({ studied, onSelect, dark, domainProgress }) {
         </defs>
 
         {/* Connection arcs */}
-        {CONNECTIONS.map(([a, b], i) => {
+        {connections.map(([a, b], i) => {
           const pa = positions[a - 1];
           const pb = positions[b - 1];
           if (!pa || !pb) return null;
-          const da = DOMAINS[a - 1];
+          const da = domains[a - 1];
           const isHov = hovered === a || hovered === b;
           const mx = (pa.x + pb.x) / 2;
           const my = (pa.y + pb.y) / 2;
@@ -104,7 +104,7 @@ export default function RadialMap({ studied, onSelect, dark, domainProgress }) {
         ))}
 
         {/* Domain nodes */}
-        {DOMAINS.map((d, i) => {
+        {domains.map((d, i) => {
           const p = positions[i];
           const prog = domainProgress(d);
           const isHov = hovered === d.id;
@@ -151,19 +151,19 @@ export default function RadialMap({ studied, onSelect, dark, domainProgress }) {
       </svg>
 
       <div className={`text-center text-[11px] ${muted} pt-1`}>
-        Hover a domain for a study cue. Click a node to open the full notes.
+        {ui.labels.hoverCue}
       </div>
 
       {/* Legend */}
       <div className="flex flex-wrap gap-1.5 justify-center pt-1 pb-2 max-w-3xl mx-auto">
-        {CONNECTIONS.map(([a, b, label], i) => (
+        {connections.map(([a, b, label], i) => (
           <span
             key={i}
             className={`text-[10px] ${dark ? "bg-ink-600 border-ink-400 text-gray-400" : "bg-gray-100 border-gray-200 text-gray-600"} px-2 py-0.5 rounded border`}
           >
-            <span style={{ color: DOMAINS[a - 1].color }}>{DOMAINS[a - 1].icon}</span>
+            <span style={{ color: domains[a - 1].color }}>{domains[a - 1].icon}</span>
             {" → "}
-            <span style={{ color: DOMAINS[b - 1].color }}>{DOMAINS[b - 1].icon}</span>
+            <span style={{ color: domains[b - 1].color }}>{domains[b - 1].icon}</span>
             {" "}{label}
           </span>
         ))}
@@ -172,10 +172,10 @@ export default function RadialMap({ studied, onSelect, dark, domainProgress }) {
       <div className={`max-w-3xl mx-auto border rounded-2xl p-4 ${card}`}>
         {!activeDomain && (
           <div className="space-y-3">
-            <div className="text-[11px] font-bold tracking-[0.18em] text-emerald-500 uppercase">How to read the map</div>
-            <div className="text-sm font-semibold">Follow the exam chain first: auth -&gt; token -&gt; policy -&gt; secret engine -&gt; lease.</div>
+            <div className="text-[11px] font-bold tracking-[0.18em] text-emerald-500 uppercase">{ui.labels.howToReadMap}</div>
+            <div className="text-sm font-semibold">{ui.labels.mapExamChain}</div>
             <div className={`text-xs leading-6 ${muted}`}>
-              Use the connections to remember the high-value contrasts the exam repeats: Transit is still a secrets engine, architecture decisions drive deployment choices, and Vault Agent or VSO still depend on auth and secret-delivery flows.
+              {ui.labels.mapIntroBody}
             </div>
           </div>
         )}
@@ -183,10 +183,10 @@ export default function RadialMap({ studied, onSelect, dark, domainProgress }) {
         {activeDomain && activeGuide && (
           <div>
             <div className="flex items-start gap-3">
-              <div className="text-3xl">{activeDomain.icon}</div>
+                <div className="text-3xl">{activeDomain.icon}</div>
               <div className="min-w-0">
                 <div className="text-[11px] font-bold tracking-wide uppercase" style={{ color: activeDomain.color }}>
-                  Domain {activeDomain.id}
+                  {ui.labels.domain} {activeDomain.id}
                 </div>
                 <div className="text-sm font-semibold">{activeDomain.label}</div>
                 <div className={`text-xs leading-6 mt-1 ${muted}`}>{activeGuide.focus}</div>
@@ -195,11 +195,11 @@ export default function RadialMap({ studied, onSelect, dark, domainProgress }) {
 
             <div className="grid gap-3 md:grid-cols-2 mt-4">
               <div className={`${dark ? "bg-ink-800 border-ink-400" : "bg-gray-50 border-gray-200"} border rounded-2xl p-3`}>
-                <div className="text-[11px] font-semibold mb-1">Map cue</div>
+                <div className="text-[11px] font-semibold mb-1">{ui.labels.mapCue}</div>
                 <div className={`text-xs leading-6 ${muted}`}>{activeGuide.mentalModel[0]}</div>
               </div>
               <div className={`${dark ? "bg-ink-800 border-ink-400" : "bg-gray-50 border-gray-200"} border rounded-2xl p-3`}>
-                <div className="text-[11px] font-semibold mb-1">Common trap</div>
+                <div className="text-[11px] font-semibold mb-1">{ui.labels.commonTraps}</div>
                 <div className={`text-xs leading-6 ${muted}`}>{activeGuide.commonTraps[0]}</div>
               </div>
             </div>
