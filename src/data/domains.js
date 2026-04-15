@@ -78,7 +78,7 @@ export const DOMAINS = [
         ],
         cli: [
           "vault login -method=userpass username=admin",
-          `curl --request POST --data '{"password":"s3cr3t"}' \\\n  $VAULT_ADDR/v1/auth/userpass/login/admin`,
+          `curl --request POST --data '{"password":"<password>"}' \\\n  $VAULT_ADDR/v1/auth/userpass/login/admin`,
         ],
         tip: "Know API pattern: /v1/auth/<method>/login/<identity>",
       },
@@ -193,7 +193,7 @@ export const DOMAINS = [
         title: "Service vs batch tokens",
         diff: 2,
         concepts: [
-          "Service: persisted, renewable, accessor, child tokens (hvs.)",
+          "Service: persisted, renewable, accessor, child tokens (service token prefix)",
           "Batch: NOT persisted, NOT renewable, no accessor (hvb.)",
           "Batch = lightweight, encoded in token itself",
           "Use batch for high-volume short-lived workloads",
@@ -345,7 +345,7 @@ export const DOMAINS = [
           "Dynamic: on-demand with TTL, auto-revoked, UNIQUE per request",
           "Dynamic = reduced blast radius, full audit trail",
         ],
-        cli: ["vault kv put secret/myapp db_pass=s3cret", "vault read database/creds/readonly"],
+        cli: ["vault kv put secret/myapp db_pass=<db-password>", "vault read database/creds/readonly"],
         tip: "Dynamic = unique per request, auto-expire. Core value prop.",
       },
       {
@@ -523,7 +523,7 @@ export const DOMAINS = [
         ],
         cli: [
           "export VAULT_ADDR='https://vault:8200'",
-          "export VAULT_TOKEN='hvs.abc123'",
+          "export VAULT_TOKEN='<vault-token>'",
           "export VAULT_FORMAT='json'",
         ],
         tip: "Key vars: ADDR, TOKEN, NAMESPACE, FORMAT.",

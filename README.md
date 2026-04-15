@@ -2,6 +2,8 @@
 
 An interactive study hub for the **HashiCorp Certified: Vault Associate (003)** exam.
 
+![Vault Study Hub preview](./public/repo-preview.svg)
+
 This project is designed to be a single place to study:
 
 - a guided reading view with explanations and exam traps
@@ -15,6 +17,7 @@ The current guide content is aligned to the official HashiCorp certification pag
 - **Product version tested:** Vault 1.16
 - **Format:** online proctored
 - **Duration:** 1 hour
+- **Planned live URL:** https://guilhermeafonsoch.github.io/vault-study-hub/
 
 ## What is inside
 

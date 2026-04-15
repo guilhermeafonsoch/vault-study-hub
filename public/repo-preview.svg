@@ -1,0 +1,66 @@
+<svg width="1280" height="720" viewBox="0 0 1280 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1280" height="720" rx="36" fill="#0D111C"/>
+  <rect x="32" y="32" width="1216" height="656" rx="28" fill="url(#bg)"/>
+  <rect x="72" y="72" width="1136" height="56" rx="18" fill="#131A2A" stroke="#2A344A"/>
+  <circle cx="104" cy="100" r="10" fill="#7F77DD"/>
+  <circle cx="134" cy="100" r="10" fill="#1D9E75"/>
+  <circle cx="164" cy="100" r="10" fill="#D85A30"/>
+  <text x="200" y="107" fill="#E7ECF7" font-size="26" font-family="Inter, Arial, sans-serif" font-weight="700">Vault Study Hub</text>
+  <rect x="908" y="84" width="124" height="30" rx="15" fill="#1D9E75" fill-opacity="0.18" stroke="#1D9E75"/>
+  <text x="936" y="104" fill="#A7F3D0" font-size="15" font-family="Inter, Arial, sans-serif" font-weight="700">Guide</text>
+  <rect x="1048" y="84" width="126" height="30" rx="15" fill="#1E2638"/>
+  <text x="1075" y="104" fill="#B8C0D4" font-size="15" font-family="Inter, Arial, sans-serif" font-weight="600">Mind Map</text>
+
+  <rect x="72" y="156" width="704" height="214" rx="28" fill="#12192A" stroke="#33405C"/>
+  <text x="108" y="212" fill="#5EEAD4" font-size="16" font-family="Inter, Arial, sans-serif" font-weight="800" letter-spacing="2">STUDY HUB</text>
+  <text x="108" y="264" fill="#F8FAFC" font-size="42" font-family="Inter, Arial, sans-serif" font-weight="800">Vault Associate (003)</text>
+  <text x="108" y="314" fill="#C6D0E1" font-size="24" font-family="Inter, Arial, sans-serif">One place to read, review, and practice for the HashiCorp Vault exam.</text>
+  <rect x="108" y="336" width="184" height="20" rx="10" fill="#1D9E75" fill-opacity="0.20"/>
+  <text x="122" y="351" fill="#A7F3D0" font-size="14" font-family="Inter, Arial, sans-serif" font-weight="700">Vault 1.16</text>
+  <rect x="304" y="336" width="184" height="20" rx="10" fill="#7F77DD" fill-opacity="0.20"/>
+  <text x="318" y="351" fill="#D9D6FF" font-size="14" font-family="Inter, Arial, sans-serif" font-weight="700">40 objectives</text>
+  <rect x="500" y="336" width="184" height="20" rx="10" fill="#D85A30" fill-opacity="0.20"/>
+  <text x="514" y="351" fill="#FFD3C4" font-size="14" font-family="Inter, Arial, sans-serif" font-weight="700">Quiz + flashcards</text>
+
+  <rect x="806" y="156" width="402" height="214" rx="28" fill="#12192A" stroke="#33405C"/>
+  <text x="842" y="204" fill="#F8FAFC" font-size="24" font-family="Inter, Arial, sans-serif" font-weight="800">Exam path</text>
+  <text x="842" y="246" fill="#C6D0E1" font-size="18" font-family="Inter, Arial, sans-serif">1. Read the guide</text>
+  <text x="842" y="280" fill="#C6D0E1" font-size="18" font-family="Inter, Arial, sans-serif">2. Learn the map</text>
+  <text x="842" y="314" fill="#C6D0E1" font-size="18" font-family="Inter, Arial, sans-serif">3. Drill domain notes</text>
+  <text x="842" y="348" fill="#C6D0E1" font-size="18" font-family="Inter, Arial, sans-serif">4. Practice recall and quiz</text>
+
+  <rect x="72" y="400" width="548" height="248" rx="28" fill="#12192A" stroke="#33405C"/>
+  <text x="108" y="446" fill="#F8FAFC" font-size="24" font-family="Inter, Arial, sans-serif" font-weight="800">Mind map anchors</text>
+  <circle cx="314" cy="533" r="58" fill="#171F31" stroke="#7F77DD" stroke-width="3"/>
+  <text x="274" y="540" fill="#F8FAFC" font-size="22" font-family="Inter, Arial, sans-serif" font-weight="800">VAULT</text>
+  <circle cx="178" cy="520" r="34" fill="#171F31" stroke="#1D9E75" stroke-width="3"/>
+  <circle cx="464" cy="506" r="34" fill="#171F31" stroke="#D85A30" stroke-width="3"/>
+  <circle cx="214" cy="602" r="34" fill="#171F31" stroke="#378ADD" stroke-width="3"/>
+  <circle cx="442" cy="598" r="34" fill="#171F31" stroke="#639922" stroke-width="3"/>
+  <path d="M207 523C226 528 250 531 256 532" stroke="#33405C" stroke-width="2"/>
+  <path d="M372 529C393 525 420 519 430 516" stroke="#33405C" stroke-width="2"/>
+  <path d="M271 579C261 585 244 593 234 596" stroke="#33405C" stroke-width="2"/>
+  <path d="M359 580C373 587 397 594 410 597" stroke="#33405C" stroke-width="2"/>
+  <text x="145" y="525" fill="#E6FFF7" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="700">AUTH</text>
+  <text x="428" y="511" fill="#FFF0EB" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="700">TOKENS</text>
+  <text x="180" y="607" fill="#E3F3FF" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="700">ENGINES</text>
+  <text x="408" y="603" fill="#F1FFD9" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="700">TRANSIT</text>
+
+  <rect x="648" y="400" width="560" height="248" rx="28" fill="#12192A" stroke="#33405C"/>
+  <text x="684" y="446" fill="#F8FAFC" font-size="24" font-family="Inter, Arial, sans-serif" font-weight="800">Domain notes</text>
+  <rect x="684" y="476" width="488" height="48" rx="18" fill="#171F31" stroke="#7F77DD"/>
+  <text x="708" y="506" fill="#F8FAFC" font-size="18" font-family="Inter, Arial, sans-serif" font-weight="700">D3 Tokens</text>
+  <text x="832" y="506" fill="#C6D0E1" font-size="16" font-family="Inter, Arial, sans-serif">Service vs batch, TTL, accessors, orphans</text>
+  <rect x="684" y="540" width="488" height="28" rx="14" fill="#1E2638"/>
+  <rect x="684" y="540" width="338" height="28" rx="14" fill="#D85A30"/>
+  <text x="1090" y="559" fill="#FFD3C4" font-size="13" font-family="Inter, Arial, sans-serif" font-weight="700">69%</text>
+  <text x="708" y="603" fill="#C6D0E1" font-size="16" font-family="Inter, Arial, sans-serif">Explanation + exam cue + pitfalls + remember tip</text>
+
+  <defs>
+    <linearGradient id="bg" x1="32" y1="32" x2="1248" y2="688" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#111827"/>
+      <stop offset="0.48" stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#161A28"/>
+    </linearGradient>
+  </defs>
+</svg>
