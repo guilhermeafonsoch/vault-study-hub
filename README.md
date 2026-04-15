@@ -7,6 +7,7 @@ An interactive study hub for the **HashiCorp Certified: Vault Associate (003)** 
 This project is designed to be a single place to study:
 
 - a guided reading view with explanations and exam traps
+- a full written master guide in [`docs/vault-associate-master-study-guide.md`](./docs/vault-associate-master-study-guide.md)
 - an interactive mind map of the 9 domains
 - per-domain deep notes for all 40 objectives
 - flashcards, quiz mode, cheat sheet, and progress tracking
@@ -30,6 +31,12 @@ The current guide content is aligned to the official HashiCorp certification pag
 | **Flashcards** | Recall practice by domain or across the whole exam |
 | **Quiz** | Multiple-choice practice with explanations |
 | **Stats** | Progress tracking and readiness snapshot |
+
+## Full written guide
+
+If you want one document to read from start to finish, use:
+
+- [Vault Associate Master Study Guide](./docs/vault-associate-master-study-guide.md)
 
 ## Recommended study flow
 
