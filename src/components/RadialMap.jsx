@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DOMAINS, CONNECTIONS } from "../data/domains.js";
+import { DOMAIN_GUIDES } from "../data/studyGuide.js";
 
 export default function RadialMap({ studied, onSelect, dark, domainProgress }) {
   const containerRef = useRef(null);
@@ -36,6 +37,10 @@ export default function RadialMap({ studied, onSelect, dark, domainProgress }) {
   const hubStroke = dark ? "#3b3f52" : "#9ca3af";
   const labelColor = dark ? "#c9ccd5" : "#4b5563";
   const subLabel = dark ? "#9ca3af" : "#6b7280";
+  const card = dark ? "bg-ink-600 border-ink-400" : "bg-white border-gray-200";
+  const muted = dark ? "text-gray-400" : "text-gray-500";
+  const activeDomain = hovered ? DOMAINS.find((domain) => domain.id === hovered) : null;
+  const activeGuide = activeDomain ? DOMAIN_GUIDES[activeDomain.id] : null;
 
   return (
     <div ref={containerRef} className="w-full relative">
@@ -135,7 +140,7 @@ export default function RadialMap({ studied, onSelect, dark, domainProgress }) {
               <text x={p.x} y={p.y + 15} textAnchor="middle" dominantBaseline="central" fill={subLabel} fontSize={8.5} fontWeight={600}>D{d.id}</text>
               {prog === 100 && <circle cx={p.x + nodeR * 0.65} cy={p.y - nodeR * 0.65} r={7} fill="#22c55e" stroke={hubFill} strokeWidth={2} />}
               <text x={p.x} y={p.y + nodeR + 16} textAnchor="middle" dominantBaseline="central" fill={isHov ? d.color : labelColor} fontSize={10.5} fontWeight={isHov ? 700 : 500} style={{ transition: "all 0.3s" }}>
-                {d.label.length > 20 ? d.label.slice(0, 18) + "…" : d.label}
+                {d.mapLabel ?? (d.label.length > 20 ? d.label.slice(0, 18) + "…" : d.label)}
               </text>
               <text x={p.x} y={p.y + nodeR + 29} textAnchor="middle" dominantBaseline="central" fill={d.color} fontSize={9} fontWeight={600} opacity={0.8}>
                 {prog}%
@@ -144,6 +149,10 @@ export default function RadialMap({ studied, onSelect, dark, domainProgress }) {
           );
         })}
       </svg>
+
+      <div className={`text-center text-[11px] ${muted} pt-1`}>
+        Hover a domain for a study cue. Click a node to open the full notes.
+      </div>
 
       {/* Legend */}
       <div className="flex flex-wrap gap-1.5 justify-center pt-1 pb-2 max-w-3xl mx-auto">
@@ -158,6 +167,44 @@ export default function RadialMap({ studied, onSelect, dark, domainProgress }) {
             {" "}{label}
           </span>
         ))}
+      </div>
+
+      <div className={`max-w-3xl mx-auto border rounded-2xl p-4 ${card}`}>
+        {!activeDomain && (
+          <div className="space-y-3">
+            <div className="text-[11px] font-bold tracking-[0.18em] text-emerald-500 uppercase">How to read the map</div>
+            <div className="text-sm font-semibold">Follow the exam chain first: auth -&gt; token -&gt; policy -&gt; secret engine -&gt; lease.</div>
+            <div className={`text-xs leading-6 ${muted}`}>
+              Use the connections to remember the high-value contrasts the exam repeats: Transit is still a secrets engine, architecture decisions drive deployment choices, and Vault Agent or VSO still depend on auth and secret-delivery flows.
+            </div>
+          </div>
+        )}
+
+        {activeDomain && activeGuide && (
+          <div>
+            <div className="flex items-start gap-3">
+              <div className="text-3xl">{activeDomain.icon}</div>
+              <div className="min-w-0">
+                <div className="text-[11px] font-bold tracking-wide uppercase" style={{ color: activeDomain.color }}>
+                  Domain {activeDomain.id}
+                </div>
+                <div className="text-sm font-semibold">{activeDomain.label}</div>
+                <div className={`text-xs leading-6 mt-1 ${muted}`}>{activeGuide.focus}</div>
+              </div>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2 mt-4">
+              <div className={`${dark ? "bg-ink-800 border-ink-400" : "bg-gray-50 border-gray-200"} border rounded-2xl p-3`}>
+                <div className="text-[11px] font-semibold mb-1">Map cue</div>
+                <div className={`text-xs leading-6 ${muted}`}>{activeGuide.mentalModel[0]}</div>
+              </div>
+              <div className={`${dark ? "bg-ink-800 border-ink-400" : "bg-gray-50 border-gray-200"} border rounded-2xl p-3`}>
+                <div className="text-[11px] font-semibold mb-1">Common trap</div>
+                <div className={`text-xs leading-6 ${muted}`}>{activeGuide.commonTraps[0]}</div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

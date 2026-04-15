@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Check, X, RotateCcw, ChevronRight, Trophy } from "lucide-react";
-import { DOMAINS } from "../data/domains.js";
+import { DOMAINS, TOTAL_OBJECTIVES, allObjectives } from "../data/domains.js";
 import { QUIZ, shuffle } from "../data/quiz.js";
 
 export default function QuizMode({ dark }) {
@@ -23,8 +23,14 @@ export default function QuizMode({ dark }) {
       .filter((q) => filter === "all" || q.obj.startsWith(String(filter)));
     return ids;
   }, [filter, order]);
+  const objectiveLookup = useMemo(
+    () => Object.fromEntries(allObjectives().map((objective) => [objective.id, objective])),
+    []
+  );
+  const coveredObjectives = useMemo(() => new Set(QUIZ.map((question) => question.obj)).size, []);
 
   const q = pool[idx];
+  const objective = q ? objectiveLookup[q.obj] : null;
 
   const reset = (nextFilter = filter) => {
     setOrder(shuffle(QUIZ.map((x) => x.id)));
@@ -58,14 +64,19 @@ export default function QuizMode({ dark }) {
 
   if (finished) {
     const pct = Math.round((correct / Math.max(answered, 1)) * 100);
-    const pass = pct >= 70;
+    const band =
+      pct >= 85 ? { title: "Strong recall", color: "text-green-500", icon: "text-emerald-400" }
+      : pct >= 65 ? { title: "Solid base", color: "text-amber-500", icon: "text-amber-400" }
+      : { title: "Keep drilling", color: t2, icon: "text-gray-400" };
     return (
       <div className={`${card} border ${brd} rounded-2xl p-8 max-w-lg mx-auto text-center animate-fade-in`}>
-        <Trophy size={48} className={`mx-auto mb-3 ${pass ? "text-amber-400" : "text-gray-400"}`} />
-        <div className="text-2xl font-bold mb-1">{pass ? "Nicely done!" : "Keep studying"}</div>
+        <Trophy size={48} className={`mx-auto mb-3 ${band.icon}`} />
+        <div className="text-2xl font-bold mb-1">{band.title}</div>
         <div className={`text-sm ${t2} mb-4`}>
-          {correct} / {answered} correct · <span className={pass ? "text-green-500" : "text-amber-400"}>{pct}%</span>
-          <span className={`ml-1 ${t2}`}>(exam pass ≈ 70%)</span>
+          {correct} / {answered} correct · <span className={band.color}>{pct}%</span>
+        </div>
+        <div className={`text-xs leading-6 ${t2} mb-5`}>
+          This quiz is a study aid. Official exam scoring is determined by HashiCorp, and the live exam can mix question styles beyond this single-answer practice mode.
         </div>
         <button
           onClick={() => reset()}
@@ -100,6 +111,10 @@ export default function QuizMode({ dark }) {
         })}
       </div>
 
+      <div className={`text-[11px] ${t2} mb-3`}>
+        Single-answer practice mode · {coveredObjectives} / {TOTAL_OBJECTIVES} objectives covered · official exam questions may also include other formats.
+      </div>
+
       {/* Progress */}
       <div className={`text-[11px] ${t2} mb-2 flex justify-between`}>
         <span>Question {idx + 1} / {pool.length}</span>
@@ -111,7 +126,9 @@ export default function QuizMode({ dark }) {
 
       {/* Card */}
       <div className={`${card} border ${brd} rounded-2xl p-6 animate-fade-in`}>
-        <div className={`text-[10px] ${t2} mb-2 tracking-wider uppercase`}>Objective {q.obj}</div>
+        <div className={`text-[10px] ${t2} mb-2 tracking-wider uppercase`}>
+          Objective {q.obj}{objective ? ` · ${objective.title}` : ""}
+        </div>
         <div className="text-base font-semibold leading-7 mb-5">{q.question}</div>
 
         <div className="flex flex-col gap-2">

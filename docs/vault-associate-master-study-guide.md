@@ -15,7 +15,7 @@ Official references reviewed while preparing this document:
 
 - Certification details: <https://developer.hashicorp.com/certifications/security-automation>
 - Exam content list: <https://developer.hashicorp.com/vault/tutorials/associate-cert-003/associate-review-003>
-- Learning path: <https://developer.hashicorp.com/vault/tutorials/associate-cert/associate-study>
+- Learning path: <https://developer.hashicorp.com/vault/tutorials/associate-cert-003/associate-study-003>
 - Sample questions: <https://developer.hashicorp.com/vault/tutorials/associate-cert-003/associate-questions-003>
 
 ## How to use this document
@@ -190,7 +190,7 @@ Policies answer **what the caller can do**. This domain is heavily tested and sh
 **2b. Policy path syntax**
 
 - Policies match API paths.
-- `*` is a broad glob.
+- `*` is used as a suffix glob in policy paths.
 - `+` matches exactly one path segment.
 - KV v2 paths often require extra care because CLI convenience hides API details.
 
@@ -221,6 +221,7 @@ Policies answer **what the caller can do**. This domain is heavily tested and sh
 ### Common traps
 
 - Mixing up `*` and `+`
+- Treating `*` like a free-form wildcard anywhere in the path
 - Forgetting `sudo` is not a general admin switch
 - Missing `/data/` in KV v2 policy paths
 
@@ -556,12 +557,11 @@ This domain tests operational judgment: how Vault is deployed, how it stores dat
 - DR replication is for recovery
 - DR secondaries do not serve clients until promoted
 
-**8e. Cluster recommendations**
+**8e. Differentiate between self-managed and HashiCorp-managed Vault clusters**
 
-- Recommended default thinking:
-  - Integrated Storage
-  - 3 to 5 nodes
-  - multi-AZ design
+- Self-managed means you own upgrades, backups, HA behavior, storage, and surrounding infrastructure.
+- HashiCorp-managed means HashiCorp operates more of the platform lifecycle for you.
+- This objective is mainly about responsibility and operating model, not just feature lists.
 
 ### Must remember
 
@@ -584,7 +584,7 @@ vault operator rekey -init -key-shares=3 -key-threshold=2
 vault operator rotate
 ```
 
-## Domain 9: Access Management
+## Domain 9: Access Management Architecture
 
 ### Domain summary
 

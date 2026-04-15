@@ -7,6 +7,7 @@ export const DOMAINS = [
     id: 1,
     icon: "🔐",
     label: "Authentication methods",
+    mapLabel: "Auth methods",
     color: "#7F77DD",
     summary:
       "How Vault identifies clients. Every auth method ultimately produces a token. Know human vs system methods.",
@@ -125,7 +126,7 @@ export const DOMAINS = [
         diff: 1,
         concepts: [
           "Paths match API endpoints: secret/data/myapp/*",
-          "* (glob) matches any characters across segments",
+          "* is used as a suffix glob in policy paths",
           "+ (wildcard) matches exactly one path segment",
           "secret/data/+/config matches one-level deep",
           "Paths are case-sensitive",
@@ -134,7 +135,7 @@ export const DOMAINS = [
           'path "secret/data/*" {\n  capabilities = ["read"]\n}',
           'path "secret/data/+/creds" {\n  capabilities = ["read"]\n}',
         ],
-        tip: "* matches everything, + matches exactly ONE segment. Know the difference.",
+        tip: "Know the wildcard contrast: * is a suffix glob, + matches exactly one segment.",
       },
       {
         id: "2c",
@@ -283,7 +284,7 @@ export const DOMAINS = [
           "Every dynamic secret has an associated lease",
           "Format: <mount>/creds/<role>/<uuid>",
           "Lease expires → Vault revokes credentials",
-          "Leases also created for auth method tokens",
+          "Lease metadata is the handle Vault uses for renew and revoke workflows",
         ],
         cli: ["vault read database/creds/readonly"],
         tip: "Lease ID = how you manage dynamic secret lifecycle.",
@@ -419,16 +420,16 @@ export const DOMAINS = [
         title: "Access secrets via CLI, API, UI",
         diff: 1,
         concepts: [
-          "KV v1: secret/<key>",
-          "KV v2: secret/data/<key> (note /data/)",
-          "CLI hides /data/, API requires it",
-          "ACL policies MUST include /data/ for v2",
+          "CLI often uses mount + key syntax instead of raw API paths",
+          "KV v2 API reads use <mount>/data/<key>",
+          "KV v2 metadata operations use <mount>/metadata/<key>",
+          "ACL policies still need the exact KV v2 API path structure",
         ],
         cli: [
           "vault kv get -mount=secret myapp/config",
-          "vault kv get -version=2 -mount=secret myapp/config",
+          `curl -H "X-Vault-Token: $VAULT_TOKEN" \\\n  $VAULT_ADDR/v1/secret/data/myapp/config`,
         ],
-        tip: "KV v2 API needs /data/. Policies MUST include /data/!",
+        tip: "CLI convenience hides it, but KV v2 policies and API paths still need /data/ or /metadata/.",
       },
     ],
   },
@@ -489,7 +490,7 @@ export const DOMAINS = [
         diff: 1,
         concepts: [
           "Cryptographic barrier encrypts ALL data",
-          "Key hierarchy: Unseal Key → Root Key → DEK → Data",
+          "Unseal or auto-unseal lets Vault recover the root key that unlocks the barrier",
           "Storage backend is UNTRUSTED, always encrypted",
         ],
         cli: [],
@@ -534,6 +535,7 @@ export const DOMAINS = [
     id: 8,
     icon: "🌐",
     label: "Deployment architecture",
+    mapLabel: "Deploy arch",
     color: "#854F0B",
     summary: "Self-managed vs HCP. Integrated Storage (Raft) recommended. Rekey ≠ rotate.",
     objectives: [
@@ -555,9 +557,9 @@ export const DOMAINS = [
         diff: 1,
         concepts: [
           "Integrated Storage (Raft): RECOMMENDED",
-          "Consul: legacy, more complex",
-          "DynamoDB (HA), S3/PostgreSQL (no HA)",
-          "In-memory: dev mode only | ONE backend per cluster",
+          "External storage backends exist when you have a specific operational reason",
+          "Only ONE storage backend is configured per cluster",
+          "In-memory storage is for dev mode only",
         ],
         cli: ['storage "raft" {\n  path = "/opt/vault/data"\n  node_id = "vault-1"\n}'],
         tip: "Raft is recommended. Know this.",
@@ -594,24 +596,26 @@ export const DOMAINS = [
       },
       {
         id: "8e",
-        title: "Cluster recommendations",
+        title: "Differentiate self-managed vs HashiCorp-managed Vault",
         diff: 0,
         concepts: [
-          "HCP: managed HA, Enterprise features",
-          "Recommended: 3-5 nodes, 3 AZs, Raft",
+          "Self-managed: you own upgrades, backups, HA behavior, and surrounding infrastructure",
+          "HashiCorp-managed: HashiCorp operates more of the platform lifecycle for you",
+          "Both models still require sound auth, policy, and app-integration design",
         ],
         cli: [],
-        tip: "3-5 nodes, 3 AZs, Integrated Storage.",
+        tip: "Answer this objective in ownership terms: who operates the platform, not just where it runs.",
       },
     ],
   },
   {
     id: 9,
     icon: "🤖",
-    label: "Access management",
+    label: "Access management architecture",
+    mapLabel: "Access arch",
     color: "#993556",
     summary:
-      "Vault Agent (sidecar) and Vault Secrets Operator (K8s native) make apps Vault-unaware.",
+      "Vault Agent and Vault Secrets Operator reduce app-side Vault logic through helper and controller patterns.",
     objectives: [
       {
         id: "9a",
@@ -634,29 +638,29 @@ export const DOMAINS = [
         title: "Vault Secrets Operator (VSO)",
         diff: 1,
         concepts: [
-          "K8s-native: syncs Vault → K8s Secrets",
-          "No sidecar needed, instant updates",
-          "Encrypted client cache, secret transformation",
-          "Works with KV, PKI, Database, Transit",
+          "K8s-native controller: syncs Vault-managed data into Kubernetes resources",
+          "No sidecar is required in every pod",
+          "Secret transformation and encrypted client cache are optional platform features, not the basic mental model",
+          "Think controller-style sync, not sidecar-style secret delivery",
         ],
         cli: [
           "apiVersion: secrets.hashicorp.com/v1beta1\nkind: VaultStaticSecret\nspec:\n  mount: secret\n  path: myapp/config\n  destination:\n    name: my-k8s-secret",
         ],
-        tip: "VSO = K8s native. No sidecar. Know: instant updates, encrypted cache.",
+        tip: "VSO = Kubernetes-native controller sync. Agent = helper close to the workload.",
       },
     ],
   },
 ];
 
 export const CONNECTIONS = [
-  [1, 3, "Auth → Tokens"],
+  [1, 3, "Login issues Tokens"],
   [3, 2, "Tokens carry Policies"],
-  [2, 5, "Policies protect Engines"],
-  [5, 4, "Engines have Leases"],
-  [5, 6, "Transit = Engine"],
-  [7, 8, "Arch → Deploy"],
-  [9, 1, "Agent uses Auth"],
-  [1, 9, "Auth feeds Agent"],
+  [2, 5, "Policies gate Paths"],
+  [5, 4, "Dynamic secrets create Leases"],
+  [5, 6, "Transit is an Engine"],
+  [7, 8, "Architecture drives Operations"],
+  [9, 1, "Agent/VSO rely on Auth"],
+  [9, 5, "Apps consume secret outputs"],
 ];
 
 export const DIFFICULTY = ["🟢 Easy", "🟡 Medium", "🔴 Hard"];

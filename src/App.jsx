@@ -43,7 +43,7 @@ export default function App() {
 
   const studiedCount = useMemo(() => Object.values(studied).filter(Boolean).length, [studied]);
   const pct = Math.round((studiedCount / TOTAL_OBJECTIVES) * 100);
-  const readiness = pct < 30 ? "Beginner" : pct < 60 ? "Intermediate" : pct < 85 ? "Advanced" : "Exam Ready!";
+  const readiness = pct < 30 ? "Foundations" : pct < 60 ? "Building recall" : pct < 85 ? "Solid coverage" : "Final review";
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

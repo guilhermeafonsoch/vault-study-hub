@@ -51,6 +51,11 @@ If you want one document to read from start to finish, use:
 ```mermaid
 mindmap
   root((Vault Associate 003))
+    Exam chain
+      Auth to token
+      Token to policy
+      Policy to secrets engine
+      Dynamic secret to lease
     Authentication
       Purpose of auth methods
       Human vs system auth
@@ -88,7 +93,7 @@ mindmap
       Raft storage
       Rekey vs rotate
       DR vs performance replication
-    Access management
+    Access management architecture
       Vault Agent
       Vault Secrets Operator
 ```
@@ -136,7 +141,7 @@ vault-study-hub/
 
 - [Vault Associate certification details](https://developer.hashicorp.com/certifications/security-automation)
 - [Vault Associate (003) exam content list](https://developer.hashicorp.com/vault/tutorials/associate-cert-003/associate-review-003)
-- [Vault Associate learning path](https://developer.hashicorp.com/vault/tutorials/associate-cert/associate-study)
+- [Vault Associate learning path](https://developer.hashicorp.com/vault/tutorials/associate-cert-003/associate-study-003)
 - [Vault Associate sample questions](https://developer.hashicorp.com/vault/tutorials/associate-cert-003/associate-questions-003)
 - [Vault 1.16 documentation](https://developer.hashicorp.com/vault/docs)
 

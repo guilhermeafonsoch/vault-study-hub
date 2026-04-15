@@ -75,7 +75,7 @@ export const EXAM_GUIDE = {
     },
     {
       label: "Learning path",
-      href: "https://developer.hashicorp.com/vault/tutorials/associate-cert/associate-study",
+      href: "https://developer.hashicorp.com/vault/tutorials/associate-cert-003/associate-study-003",
     },
     {
       label: "Sample questions",
@@ -325,9 +325,10 @@ Object.assign(OBJECTIVE_GUIDE, {
   "2b": {
     explanation:
       "Vault policy paths match API paths, not friendly CLI shortcuts. Wildcards determine how broad the match is, which is why path syntax questions show up often.",
-    examCue: "Know that * is broad and + matches exactly one path segment.",
+    examCue: "Know that * is used as a suffix glob and + matches exactly one path segment.",
     pitfalls: [
       "KV v2 policies must account for API paths such as /data/ and sometimes /metadata/.",
+      "Treating * like a free-form wildcard anywhere in the path leads to bad policy answers.",
       "Path matching is case-sensitive.",
     ],
     remember: "Policies speak API path language.",
