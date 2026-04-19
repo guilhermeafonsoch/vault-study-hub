@@ -41,6 +41,42 @@ export default function ObjCard({ o, d, expanded, toggle, studied, mark, dark })
             </div>
           )}
 
+          {note?.whyItMatters && (
+            <div className="mt-3">
+              <div className={`text-[11px] font-semibold ${t2} mb-2 uppercase tracking-wider`}>{ui.labels.whyItMatters}</div>
+              <div className={`text-xs leading-6 ${t1} px-3 py-2.5 rounded-lg ${dark ? "bg-ink-800" : "bg-gray-50"}`} style={{ borderLeft: "3px solid #10b98155" }}>
+                {note.whyItMatters}
+              </div>
+            </div>
+          )}
+
+          {note?.howItWorks && (
+            <div className="mt-3">
+              <div className={`text-[11px] font-semibold ${t2} mb-2 uppercase tracking-wider`}>{ui.labels.howItWorks}</div>
+              <div className={`text-xs leading-6 ${t1} px-3 py-2.5 rounded-lg ${dark ? "bg-ink-800" : "bg-gray-50"}`} style={{ borderLeft: "3px solid #7F77DD55" }}>
+                {note.howItWorks}
+              </div>
+            </div>
+          )}
+
+          {note?.useCase && (
+            <div className="mt-3">
+              <div className={`text-[11px] font-semibold ${t2} mb-2 uppercase tracking-wider`}>{ui.labels.useCase}</div>
+              <div className={`text-xs leading-6 ${t1} px-3 py-2.5 rounded-lg ${dark ? "bg-ink-800" : "bg-gray-50"}`} style={{ borderLeft: "3px solid #22c55e55" }}>
+                {note.useCase}
+              </div>
+            </div>
+          )}
+
+          {note?.realWorldExample && (
+            <div className="mt-3">
+              <div className={`text-[11px] font-semibold ${t2} mb-2 uppercase tracking-wider`}>{ui.labels.realWorldExample}</div>
+              <div className={`text-xs leading-6 ${t1} px-3 py-2.5 rounded-lg ${dark ? "bg-ink-800" : "bg-gray-50"}`} style={{ borderLeft: "3px solid #f59e0b55" }}>
+                {note.realWorldExample}
+              </div>
+            </div>
+          )}
+
           {note?.examCue && (
             <div
               className={`mt-3 px-3 py-2.5 rounded-lg ${dark ? "bg-emerald-950/25 text-emerald-100" : "bg-emerald-50 text-emerald-900"}`}

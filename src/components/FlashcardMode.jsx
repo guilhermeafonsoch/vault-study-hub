@@ -88,6 +88,16 @@ export default function FlashcardMode({ dark, studied, markObj }) {
             {note?.explanation && (
               <div className={`mb-4 text-sm leading-7 ${t2}`}>{note.explanation}</div>
             )}
+            {note?.useCase && (
+              <div className={`text-[11px] p-2 rounded mb-3 ${dark ? "bg-emerald-950/25 text-emerald-100" : "bg-emerald-50 text-emerald-900"} leading-5`} style={{ borderLeft: `2px solid ${c.domain.color}` }}>
+                <strong>{ui.labels.useCase}: </strong>{note.useCase}
+              </div>
+            )}
+            {note?.realWorldExample && (
+              <div className={`text-[11px] p-2 rounded mb-3 ${dark ? "bg-sky-950/25 text-sky-100" : "bg-sky-50 text-sky-900"} leading-5`} style={{ borderLeft: `2px solid ${c.domain.color}` }}>
+                <strong>{ui.labels.realWorldExample}: </strong>{note.realWorldExample}
+              </div>
+            )}
             <ul className="mb-4 space-y-1.5">
               {c.concepts.map((k, i) => (
                 <li key={i} className="text-sm leading-6 pl-3" style={{ borderLeft: `2px solid ${c.domain.color}66` }}>{k}</li>

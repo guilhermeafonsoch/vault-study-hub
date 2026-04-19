@@ -1,3 +1,5 @@
+import { OBJECTIVE_DEEP_DIVE } from "./objectiveDeepDive.js";
+
 export const EXAM_GUIDE = {
   title: "Vault Associate (003) Study Guide",
   summary:
@@ -653,4 +655,11 @@ Object.assign(OBJECTIVE_GUIDE, {
     ],
     remember: "VSO is the Kubernetes-native sync pattern.",
   },
+});
+
+Object.entries(OBJECTIVE_DEEP_DIVE).forEach(([id, deepDive]) => {
+  OBJECTIVE_GUIDE[id] = {
+    ...OBJECTIVE_GUIDE[id],
+    ...deepDive,
+  };
 });

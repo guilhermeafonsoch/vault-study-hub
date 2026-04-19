@@ -56,6 +56,10 @@ export default function App() {
         o.cli.some((c) => c.toLowerCase().includes(q)) ||
         o.tip.toLowerCase().includes(q) ||
         (objectiveGuide[o.id]?.explanation || "").toLowerCase().includes(q) ||
+        (objectiveGuide[o.id]?.whyItMatters || "").toLowerCase().includes(q) ||
+        (objectiveGuide[o.id]?.howItWorks || "").toLowerCase().includes(q) ||
+        (objectiveGuide[o.id]?.useCase || "").toLowerCase().includes(q) ||
+        (objectiveGuide[o.id]?.realWorldExample || "").toLowerCase().includes(q) ||
         (objectiveGuide[o.id]?.examCue || "").toLowerCase().includes(q) ||
         (objectiveGuide[o.id]?.remember || "").toLowerCase().includes(q) ||
         (objectiveGuide[o.id]?.pitfalls || []).some((item) => item.toLowerCase().includes(q)) ||
