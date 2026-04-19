@@ -1,4 +1,6 @@
-const q = (obj, question, choices, answer, explain, extra = {}) => ({
+import { QUIZ_DOCS, validateQuestionSupport, withQuestionSupport } from "./quizSupport.js";
+
+const q = (obj, question, choices, answer, explain, extra = {}) => withQuestionSupport({
   obj,
   question,
   choices,
@@ -233,8 +235,56 @@ const D9 = [
 ];
 
 const REVIEW = [
-  q("1a", "Which lifecycle chain best matches how Vault access usually works on the exam?", ["Policy -> auth method -> token -> lease -> secrets engine", "Auth method -> token -> policy -> secrets engine -> lease", "Lease -> token -> auth method -> policy -> storage backend", "Secrets engine -> auth method -> entity alias -> lease -> token"], 1, "The repeated exam chain is auth method to token to policy to secrets engine to lease."),
-  q("8d", "A Kubernetes application needs database credentials, should not embed Vault SDK logic, and wants synced Kubernetes Secret objects instead of a sidecar. Which combination best fits?", ["Vault Agent plus static KV only", "VSO plus a suitable dynamic secrets engine", "Userpass auth plus root token", "Response wrapping plus in-memory storage"], 1, "This is a mixed scenario: VSO is the Kubernetes-native delivery pattern, and a dynamic secrets engine provides the credential."),
+  q(
+    "1a",
+    "Which lifecycle chain best matches how Vault access usually works on the exam?",
+    ["Policy -> auth method -> token -> lease -> secrets engine", "Auth method -> token -> policy -> secrets engine -> lease", "Lease -> token -> auth method -> policy -> storage backend", "Secrets engine -> auth method -> entity alias -> lease -> token"],
+    1,
+    "The repeated exam chain is auth method to token to policy to secrets engine to lease.",
+    {
+      guideObjective: false,
+      reviewObjectives: ["1a", "2a", "5d", "4a"],
+      docs: [
+        QUIZ_DOCS.associate,
+        QUIZ_DOCS.authConcepts,
+        QUIZ_DOCS.policies,
+        QUIZ_DOCS.lease,
+      ],
+      correctReview:
+        "This mixed-review question is testing the end-to-end Vault flow the exam comes back to repeatedly: authenticate first, receive a token, authorize that token with policies, reach the mounted secrets engine, and then manage the leased output when the engine returns dynamic data.",
+      choiceNotes: [
+        "Policies are attached to tokens after authentication. They do not come before the auth step itself, so this chain starts in the wrong place.",
+        "This is the best lifecycle chain for exam scenarios because Vault first authenticates the caller, then issues a token with policies, then authorizes access to the secrets engine, and finally manages leases for dynamic outputs.",
+        "Leases are created after Vault issues a secret or a renewable service token. They do not come before authentication and token creation.",
+        "Secrets engines are mounted by operators before clients ever authenticate, and entity aliases are identity-mapping objects rather than the normal next step after a secrets-engine request.",
+      ],
+    }
+  ),
+  q(
+    "9b",
+    "A Kubernetes application needs database credentials, should not embed Vault SDK logic, and wants synced Kubernetes Secret objects instead of a sidecar. Which combination best fits?",
+    ["Vault Agent plus static KV only", "VSO plus a suitable dynamic secrets engine", "Userpass auth plus root token", "Response wrapping plus in-memory storage"],
+    1,
+    "This is a mixed scenario: VSO is the Kubernetes-native delivery pattern, and a dynamic secrets engine provides the credential.",
+    {
+      guideObjective: false,
+      reviewObjectives: ["5a", "5b", "9b"],
+      docs: [
+        QUIZ_DOCS.associate,
+        QUIZ_DOCS.database,
+        QUIZ_DOCS.vso,
+        QUIZ_DOCS.k8sCompare,
+      ],
+      correctReview:
+        "This question mixes secret generation with Kubernetes delivery. The requirement for synced Kubernetes Secret objects points to Vault Secrets Operator, while the requirement for database credentials points to a dynamic secrets engine such as the Database engine rather than a static KV value.",
+      choiceNotes: [
+        "Vault Agent is the sidecar pattern, which the prompt explicitly rules out, and static KV does not satisfy the requirement for dynamic database credentials.",
+        "This is the best fit because VSO handles controller-style sync into Kubernetes-native Secret objects while a dynamic secrets engine supplies short-lived database credentials.",
+        "Userpass auth and root tokens are both wrong mental models here. The scenario is about workload delivery and dynamic credentials, not a human operator logging in with privileged emergency access.",
+        "Response wrapping is about secure one-time handoff, and in-memory storage is only a development-mode storage choice. Neither solves the controller-based Kubernetes sync requirement in the prompt.",
+      ],
+    }
+  ),
 ];
 
 export const QUESTION_GROUPS = [
@@ -268,3 +318,5 @@ const totalQuestions = QUESTION_GROUPS.reduce((count, group) => count + group.qu
 if (totalQuestions !== EXPECTED_TOTAL_QUESTION_COUNT) {
   throw new Error(`Expected ${EXPECTED_TOTAL_QUESTION_COUNT} total quiz questions, received ${totalQuestions}.`);
 }
+
+validateQuestionSupport(QUESTION_GROUPS);

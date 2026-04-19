@@ -29,6 +29,8 @@ export const UI_COPY = {
       openDomainNotes: "Open domain notes",
       markStudied: "Mark studied",
       studied: "Studied",
+      showDocs: "Documentation",
+      hideDocs: "Hide docs",
     },
     labels: {
       searchPlaceholder: "Search topics, commands, tips…  ( / )",
@@ -84,6 +86,12 @@ export const UI_COPY = {
         "Progress is stored only in this browser using local storage. No login or account is required.",
       objectiveGuide: "Objective guide",
       officialStudyLinks: "Official study links",
+      answerReview: "Answer review",
+      optionBreakdown: "Option breakdown",
+      whyThisIsCorrect: "Why this is correct",
+      whyThisIsNotBest: "Why this is not the best fit",
+      officialDocsForQuestion: "Official documentation for this question",
+      sourceLinks: "Source links",
       crossCheckGuide:
         "Use these when you want to cross-check the guide against the current HashiCorp material.",
       howToStudy: "How to study",
@@ -211,6 +219,8 @@ export const UI_COPY = {
       openDomainNotes: "Abrir notas do domínio",
       markStudied: "Marcar como estudado",
       studied: "Estudado",
+      showDocs: "Documentação",
+      hideDocs: "Ocultar docs",
     },
     labels: {
       searchPlaceholder: "Buscar tópicos, comandos e dicas…  ( / )",
@@ -265,6 +275,12 @@ export const UI_COPY = {
         "O progresso fica salvo apenas neste navegador usando armazenamento local. Não precisa de login nem de conta.",
       objectiveGuide: "Guia dos objetivos",
       officialStudyLinks: "Links oficiais de estudo",
+      answerReview: "Revisão da resposta",
+      optionBreakdown: "Análise das opções",
+      whyThisIsCorrect: "Por que isso está correto",
+      whyThisIsNotBest: "Por que esta não é a melhor opção",
+      officialDocsForQuestion: "Documentação oficial para esta questão",
+      sourceLinks: "Links de origem",
       crossCheckGuide:
         "Use estes links para conferir o guia com o material atual da HashiCorp.",
       howToStudy: "Como estudar",

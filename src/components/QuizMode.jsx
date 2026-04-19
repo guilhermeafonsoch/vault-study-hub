@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
-import { Check, X, RotateCcw, ChevronRight, Trophy } from "lucide-react";
+import { Check, X, RotateCcw, ChevronRight, Trophy, BookOpen, ExternalLink } from "lucide-react";
 import { getQuestionDomain, shuffle } from "../data/quiz.js";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 
 export default function QuizMode({ dark }) {
-  const { domains, quiz, totalObjectives, allObjectives, ui } = useLocale();
+  const { domains, quiz, totalObjectives, allObjectives, domainGuides, objectiveGuide, ui } = useLocale();
   const [filter, setFilter] = useState("all"); // domain id or "all"
   const [order, setOrder] = useState(() => shuffle(quiz.map((q) => q.id)));
   const [idx, setIdx] = useState(0);
@@ -12,6 +12,7 @@ export default function QuizMode({ dark }) {
   const [correct, setCorrect] = useState(0);
   const [answered, setAnswered] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [showDocs, setShowDocs] = useState(false);
 
   const card = dark ? "bg-ink-600" : "bg-white";
   const brd = dark ? "border-ink-400" : "border-gray-200";
@@ -39,7 +40,26 @@ export default function QuizMode({ dark }) {
   );
 
   const q = pool[idx];
-  const objective = q ? objectiveLookup[q.obj] : null;
+  const isReviewQuestion = q ? getQuestionDomain(q) === "review" : false;
+  const guideObjectiveId = q
+    ? (q.guideObjective === false ? null : (q.guideObjective ?? q.obj))
+    : null;
+  const objective = guideObjectiveId ? objectiveLookup[guideObjectiveId] : null;
+  const questionDomain = q && !isReviewQuestion
+    ? domains.find((domain) => String(domain.id) === String(Number.parseInt(guideObjectiveId ?? q.obj, 10)))
+    : null;
+  const note = guideObjectiveId ? objectiveGuide[guideObjectiveId] : null;
+  const questionDocs = useMemo(() => {
+    if (!q) return [];
+    if (q.docs?.length) return q.docs;
+    const domainDocs = questionDomain ? (domainGuides[questionDomain.id]?.resources ?? []) : [];
+    const seen = new Set();
+    return domainDocs.filter((doc) => {
+      if (!doc?.href || seen.has(doc.href)) return false;
+      seen.add(doc.href);
+      return true;
+    }).slice(0, 4);
+  }, [domainGuides, q, questionDomain]);
 
   const reset = (nextFilter = filter) => {
     setOrder(shuffle(quiz.map((x) => x.id)));
@@ -49,6 +69,7 @@ export default function QuizMode({ dark }) {
     setAnswered(0);
     setFinished(false);
     setFilter(nextFilter);
+    setShowDocs(false);
   };
 
   const submit = (choiceIdx) => {
@@ -64,6 +85,7 @@ export default function QuizMode({ dark }) {
     } else {
       setIdx(idx + 1);
       setPicked(null);
+      setShowDocs(false);
     }
   };
 
@@ -98,6 +120,18 @@ export default function QuizMode({ dark }) {
   }
 
   const isCorrect = picked === q.answer;
+  const choiceReviews = q.choices.map((choice, index) => ({
+    choice,
+    isCorrect: index === q.answer,
+    reason: q.choiceNotes?.[index]
+      ?? buildChoiceReason({
+        question: q,
+        choice,
+        index,
+        objective,
+        note,
+      }),
+  }));
   return (
     <div className="max-w-2xl mx-auto">
       {/* Filter pills */}
@@ -158,9 +192,46 @@ export default function QuizMode({ dark }) {
       {/* Card */}
       <div className={`${card} border ${brd} rounded-2xl p-6 animate-fade-in`}>
         <div className={`text-[10px] ${t2} mb-2 tracking-wider uppercase`}>
-          {ui.labels.objective} {q.obj}{objective ? ` · ${objective.title}` : ""}
+          {isReviewQuestion
+            ? `${ui.labels.mixedReview}${q.reviewObjectives?.length ? ` · ${q.reviewObjectives.join(" · ")}` : ""}`
+            : `${ui.labels.objective} ${q.obj}${objective ? ` · ${objective.title}` : ""}`}
         </div>
         <div className="text-base font-semibold leading-7 mb-5">{q.question}</div>
+
+        <div className="flex flex-wrap gap-2 mb-5">
+          <button
+            onClick={() => setShowDocs((value) => !value)}
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${dark ? "border-ink-400 bg-ink-700 hover:bg-ink-800" : "border-gray-200 bg-gray-50 hover:bg-gray-100"}`}
+          >
+            <BookOpen size={13} />
+            {showDocs ? ui.actions.hideDocs : ui.actions.showDocs}
+          </button>
+        </div>
+
+        {showDocs && (
+          <div className={`mb-5 rounded-2xl border p-4 ${dark ? "border-ink-400 bg-ink-700/70" : "border-gray-200 bg-gray-50"}`}>
+            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-400">
+              {ui.labels.officialDocsForQuestion}
+            </div>
+            <div className={`text-xs leading-6 mt-2 ${t2}`}>
+              {ui.labels.sourceLinks}
+            </div>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {questionDocs.map((doc) => (
+                <a
+                  key={doc.href}
+                  href={doc.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-medium transition ${dark ? "border-ink-400 bg-ink-800 hover:bg-ink-700" : "border-gray-200 bg-white hover:bg-gray-100"}`}
+                >
+                  {doc.label}
+                  <ExternalLink size={12} />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col gap-2">
           {q.choices.map((choice, i) => {
@@ -189,8 +260,50 @@ export default function QuizMode({ dark }) {
         </div>
 
         {picked !== null && (
-          <div className={`mt-4 p-3 rounded-lg text-xs leading-6 ${isCorrect ? "bg-green-500/10 text-green-300" : "bg-red-500/10 text-red-300"}`}>
-            <strong>{isCorrect ? `${ui.labels.correctAnswer} ` : `${ui.labels.incorrectAnswer} `}</strong>{q.explain}
+          <div className="mt-4 space-y-3">
+            <div className={`p-3 rounded-lg text-xs leading-6 ${isCorrect ? "bg-green-500/10 text-green-300" : "bg-red-500/10 text-red-300"}`}>
+              <strong>{isCorrect ? `${ui.labels.correctAnswer} ` : `${ui.labels.incorrectAnswer} `}</strong>{q.explain}
+            </div>
+
+            <div className={`rounded-2xl border p-4 ${dark ? "border-ink-400 bg-ink-700/70" : "border-gray-200 bg-gray-50"}`}>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-400">
+                {ui.labels.answerReview}
+              </div>
+              <div className="mt-3">
+                <div className="text-xs font-semibold text-green-500">{ui.labels.whyThisIsCorrect}</div>
+                <div className={`text-xs leading-6 mt-2 ${t2}`}>
+                  {q.correctReview ?? buildCorrectReview(q, note)}
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="text-xs font-semibold text-violet-400">{ui.labels.optionBreakdown}</div>
+                <div className="space-y-2 mt-3">
+                  {choiceReviews.map((item, reviewIndex) => (
+                    <div
+                      key={`${q.id}-review-${reviewIndex}`}
+                      className={`rounded-xl border px-3 py-3 ${item.isCorrect ? "border-green-500/30 bg-green-500/10" : dark ? "border-ink-400 bg-ink-800" : "border-gray-200 bg-white"}`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <span className={`w-5 h-5 rounded-full border flex items-center justify-center text-[10px] font-bold ${item.isCorrect ? "border-green-500 text-green-500" : dark ? "border-ink-300 text-gray-300" : "border-gray-300 text-gray-600"}`}>
+                          {String.fromCharCode(65 + reviewIndex)}
+                        </span>
+                        <div className="flex-1">
+                          <div className="text-xs font-semibold">
+                            {item.choice}
+                          </div>
+                          <div className={`text-[11px] mt-1 ${item.isCorrect ? "text-green-400" : t2}`}>
+                            {item.isCorrect ? ui.labels.whyThisIsCorrect : ui.labels.whyThisIsNotBest}
+                          </div>
+                          <div className={`text-xs leading-6 mt-2 ${item.isCorrect ? "text-green-200" : t2}`}>
+                            {item.reason}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -207,4 +320,33 @@ export default function QuizMode({ dark }) {
       </div>
     </div>
   );
+}
+
+function buildCorrectReview(question, note) {
+  return [
+    question.explain,
+    note?.explanation,
+    note?.examCue,
+  ].filter(Boolean).join(" ");
+}
+
+function buildChoiceReason({ question, choice, index, objective, note }) {
+  if (index === question.answer) {
+    return buildCorrectReview(question, note);
+  }
+
+  const correctChoice = question.choices[question.answer];
+  const objectiveFocus = objective?.title
+    ? `This question is testing ${objective.title.toLowerCase()}.`
+    : "";
+  const trap = note?.pitfalls?.[0]
+    ? `Common trap: ${note.pitfalls[0]}`
+    : "";
+
+  return [
+    `${choice} does not best match what the prompt is asking for.`,
+    objectiveFocus,
+    `${correctChoice} is the better answer here because ${question.explain.charAt(0).toLowerCase()}${question.explain.slice(1)}`,
+    trap,
+  ].filter(Boolean).join(" ");
 }
