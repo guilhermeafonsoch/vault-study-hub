@@ -1,108 +1,119 @@
-import { ArrowRight, CheckCircle2, ExternalLink } from "lucide-react";
+import { ArrowRight, CheckCircle2, Compass, ExternalLink, Map, Sparkles } from "lucide-react";
+import { VaultMark } from "./BrandMarks.jsx";
+import { SurfaceCard, SurfaceIntro, SurfaceKicker, SurfaceLink, SurfaceStat, getSurfaceTokens } from "./SurfacePrimitives.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 
 export default function StudyGuide({ dark, studied, onOpenDomain, onOpenMindMap, domainProgress }) {
   const { domains, domainGuides, examGuide, objectiveGuide, ui } = useLocale();
-  const panel = dark ? "bg-ink-600 border-ink-400" : "bg-white border-gray-200";
-  const muted = dark ? "text-gray-400" : "text-gray-500";
-  const subtle = dark ? "bg-ink-800/80" : "bg-gray-50";
+  const tokens = getSurfaceTokens(dark);
+
+  const introAside = (
+    <div className="grid gap-3">
+      {examGuide.highlights.map((item, index) => (
+        <div
+          key={item.title}
+          className={`${tokens.soft} rounded-[24px] border p-4`}
+          style={index === 0 ? { background: dark ? "linear-gradient(120deg, rgba(15,98,254,0.14), rgba(190,149,255,0.04))" : "linear-gradient(120deg, rgba(15,98,254,0.08), rgba(190,149,255,0.03))" } : undefined}
+        >
+          <div className="text-xs font-semibold">{item.title}</div>
+          <div className={`mt-2 text-xs leading-6 ${tokens.muted}`}>{item.body}</div>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <section
-        className={`${panel} border rounded-[28px] overflow-hidden`}
-        style={{
-          background: dark
-            ? "linear-gradient(135deg, rgba(127,119,221,0.14), rgba(29,158,117,0.10) 45%, rgba(216,90,48,0.14))"
-            : "linear-gradient(135deg, rgba(127,119,221,0.08), rgba(29,158,117,0.05) 45%, rgba(216,90,48,0.08))",
-        }}
-      >
-        <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr] p-6 md:p-8">
-          <div>
-            <div className="text-[11px] font-bold tracking-[0.18em] text-emerald-500 uppercase">{ui.labels.studyHub}</div>
-            <h1 className="text-3xl md:text-4xl font-extrabold leading-tight mt-2 mb-3">{examGuide.title}</h1>
-            <p className={`max-w-3xl text-sm leading-7 ${muted}`}>{examGuide.summary}</p>
-
-            <div className="flex flex-wrap gap-2 mt-5">
-              <span className={`text-[11px] px-2.5 py-1 rounded-full border ${panel}`}>Vault 1.16</span>
-              <span className={`text-[11px] px-2.5 py-1 rounded-full border ${panel}`}>{ui.labels.hourExam}</span>
-              <span className={`text-[11px] px-2.5 py-1 rounded-full border ${panel}`}>{ui.labels.onlineProctored}</span>
-              <span className={`text-[11px] px-2.5 py-1 rounded-full border ${panel}`}>{ui.labels.nineDomains}</span>
-              <span className={`text-[11px] px-2.5 py-1 rounded-full border ${panel}`}>{ui.labels.fortyObjectives}</span>
-            </div>
-
-            <div className="flex flex-wrap gap-2 mt-5">
-              <button
-                onClick={onOpenMindMap}
-                className="inline-flex items-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2 text-sm font-semibold transition"
-              >
-                {ui.actions.openMindMap} <ArrowRight size={14} />
-              </button>
-              <div className={`text-xs leading-6 px-3 py-2 rounded-2xl ${subtle} ${muted}`}>
-                {ui.labels.recommendedFlow}
-              </div>
-            </div>
-          </div>
-
-          <div className="grid gap-3">
-            {examGuide.highlights.map((item) => (
-              <div key={item.title} className={`${subtle} border ${dark ? "border-ink-400" : "border-gray-200"} rounded-2xl p-4`}>
-                <div className="text-xs font-semibold mb-1">{item.title}</div>
-                <div className={`text-xs leading-6 ${muted}`}>{item.body}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="grid gap-4 lg:grid-cols-2">
-        <div className={`${panel} border rounded-3xl p-5`}>
-          <div className="text-lg font-bold mb-3">{ui.labels.howToStudy}</div>
-          <div className="space-y-3">
-            {examGuide.studyFlow.map((step, index) => (
-              <div key={step.title} className={`${subtle} border ${dark ? "border-ink-400" : "border-gray-200"} rounded-2xl p-4`}>
-                <div className="text-[11px] font-bold tracking-wide text-emerald-500 uppercase">{ui.labels.pass} {index + 1}</div>
-                <div className="text-sm font-semibold mt-1">{step.title}</div>
-                <div className={`text-xs leading-6 mt-1 ${muted}`}>{step.body}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className={`${panel} border rounded-3xl p-5`}>
-          <div className="text-lg font-bold mb-3">{ui.labels.mindMapRoutes}</div>
-          <div className="space-y-3">
-            {examGuide.connectionMap.map((item) => (
-              <div key={item.title} className={`${subtle} border ${dark ? "border-ink-400" : "border-gray-200"} rounded-2xl p-4`}>
-                <div className="text-sm font-semibold">{item.title}</div>
-                <div className={`text-xs leading-6 mt-1 ${muted}`}>{item.body}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className={`${panel} border rounded-3xl p-5`}>
-        <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
-          <div>
-            <div className="text-lg font-bold">{ui.labels.officialStudyLinks}</div>
-            <div className={`text-xs ${muted}`}>{ui.labels.crossCheckGuide}</div>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {examGuide.officialLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              target="_blank"
-              rel="noreferrer"
-              className={`inline-flex items-center gap-2 text-xs px-3 py-2 rounded-full border ${dark ? "border-ink-400 bg-ink-800 hover:bg-ink-700" : "border-gray-200 bg-gray-50 hover:bg-gray-100"} transition`}
+      <SurfaceIntro
+        dark={dark}
+        tone="mixed"
+        eyebrow={<><VaultMark size={16} /><span>{ui.labels.studyHub}</span></>}
+        title={examGuide.title}
+        body={examGuide.summary}
+        actions={
+          <>
+            <button
+              onClick={onOpenMindMap}
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white transition hover:opacity-95"
+              style={{ backgroundColor: "var(--ibm-blue-60)" }}
             >
-              {link.label} <ExternalLink size={12} />
-            </a>
+              {ui.actions.openMindMap}
+              <ArrowRight size={14} />
+            </button>
+            <div className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold ${tokens.chip}`}>
+              <Compass size={14} />
+              {ui.labels.recommendedFlow}
+            </div>
+          </>
+        }
+        stats={[
+          <SurfaceStat key="domains" dark={dark} label={ui.labels.domain} value={`${domains.length}`} body={ui.labels.nineDomains} />,
+          <SurfaceStat key="objectives" dark={dark} label={ui.labels.objectiveGuide} value={`${domains.flatMap((domain) => domain.objectives).length}`} body={ui.labels.fortyObjectives} tone="purple" />,
+          <SurfaceStat key="links" dark={dark} label={ui.labels.officialStudyLinks} value={`${examGuide.officialLinks.length}`} body={ui.labels.crossCheckGuide} tone="blue" />,
+        ]}
+        aside={introAside}
+      />
+
+      <section className="grid gap-5 xl:grid-cols-2">
+        <SurfaceCard dark={dark}>
+          <SurfaceKicker tone="blue">
+            <Sparkles size={13} />
+            {ui.labels.howToStudy}
+          </SurfaceKicker>
+          <div className="display-font mt-3 text-3xl font-semibold">{ui.labels.recommendedFlow}</div>
+          <div className={`mt-3 text-sm leading-7 ${tokens.muted}`}>{ui.home.routeOneBody}</div>
+          <div className="mt-6 grid gap-3">
+            {examGuide.studyFlow.map((step, index) => (
+              <div key={step.title} className={`${tokens.soft} rounded-[24px] border p-4`}>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--ibm-blue-30)" }}>
+                  {ui.labels.pass} {index + 1}
+                </div>
+                <div className="mt-2 text-sm font-semibold">{step.title}</div>
+                <div className={`mt-2 text-xs leading-6 ${tokens.muted}`}>{step.body}</div>
+              </div>
+            ))}
+          </div>
+        </SurfaceCard>
+
+        <SurfaceCard dark={dark}>
+          <SurfaceKicker tone="purple">
+            <Map size={13} />
+            {ui.labels.mindMapRoutes}
+          </SurfaceKicker>
+          <div className="display-font mt-3 text-3xl font-semibold">{ui.labels.mapExamChain}</div>
+          <div className={`mt-3 text-sm leading-7 ${tokens.muted}`}>{ui.labels.mapIntroBody}</div>
+          <div className="mt-6 grid gap-3">
+            {examGuide.connectionMap.map((item, index) => (
+              <div
+                key={item.title}
+                className={`${tokens.soft} rounded-[24px] border p-4`}
+                style={index === 0 ? { borderLeft: "3px solid var(--ibm-purple-40)" } : undefined}
+              >
+                <div className="text-sm font-semibold">{item.title}</div>
+                <div className={`mt-2 text-xs leading-6 ${tokens.muted}`}>{item.body}</div>
+              </div>
+            ))}
+          </div>
+        </SurfaceCard>
+      </section>
+
+      <SurfaceCard dark={dark}>
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <SurfaceKicker tone="blue">{ui.labels.officialStudyLinks}</SurfaceKicker>
+            <div className="display-font mt-3 text-3xl font-semibold">{ui.labels.crossCheckGuide}</div>
+          </div>
+          <div className={`max-w-xl text-sm leading-7 ${tokens.muted}`}>{ui.labels.builtFor} · {ui.labels.contentBasedOn}</div>
+        </div>
+
+        <div className="mt-6 flex flex-wrap gap-2">
+          {examGuide.officialLinks.map((link) => (
+            <SurfaceLink key={link.href} dark={dark} href={link.href} icon={<ExternalLink size={12} />}>
+              {link.label}
+            </SurfaceLink>
           ))}
         </div>
-      </section>
+      </SurfaceCard>
 
       <section className="space-y-4">
         {domains.map((domain) => {
@@ -111,95 +122,109 @@ export default function StudyGuide({ dark, studied, onOpenDomain, onOpenMindMap,
           const done = domain.objectives.filter((objective) => studied[objective.id]).length;
 
           return (
-            <article key={domain.id} className={`${panel} border rounded-3xl p-5`}>
-              <div className="flex items-start gap-3 flex-wrap">
-                <div className="text-3xl">{domain.icon}</div>
-                <div className="flex-1 min-w-[240px]">
-                  <div className="text-[11px] font-bold tracking-wide uppercase" style={{ color: domain.color }}>
-                    {ui.labels.domain} {domain.id}
-                  </div>
-                  <div className="text-xl font-bold">{domain.label}</div>
-                  <p className={`text-sm leading-7 mt-2 ${muted}`}>{guide.focus}</p>
-                </div>
-
-                <div className="min-w-[180px]">
-                  <div className="flex items-center justify-between text-[11px] mb-1">
-                    <span className={muted}>{ui.labels.studiedProgress(done, domain.objectives.length)}</span>
-                    <span style={{ color: domain.color }} className="font-semibold">{progress}%</span>
-                  </div>
-                  <div className={`h-1.5 rounded-full overflow-hidden ${dark ? "bg-ink-800" : "bg-gray-100"}`}>
-                    <div className="h-full rounded-full" style={{ width: `${progress}%`, background: domain.color }} />
-                  </div>
-                  <button
-                    onClick={() => onOpenDomain(domain)}
-                    className={`mt-3 w-full inline-flex items-center justify-center gap-2 rounded-full px-3 py-2 text-xs font-semibold border transition ${dark ? "border-ink-400 bg-ink-800 hover:bg-ink-700" : "border-gray-200 bg-gray-50 hover:bg-gray-100"}`}
-                  >
-                    {ui.actions.openDomainNotes} <ArrowRight size={12} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid gap-4 lg:grid-cols-2 mt-5">
-                <div className={`${subtle} border ${dark ? "border-ink-400" : "border-gray-200"} rounded-2xl p-4`}>
-                  <div className="text-xs font-semibold mb-2">{ui.labels.mentalModel}</div>
-                  <div className="space-y-2">
-                    {guide.mentalModel.map((item) => (
-                      <div key={item} className={`text-xs leading-6 pl-3 ${muted}`} style={{ borderLeft: `2px solid ${domain.color}55` }}>
-                        {item}
+            <article
+              key={domain.id}
+              className={`${tokens.panel} overflow-hidden rounded-[32px] border`}
+              style={{
+                background: dark
+                  ? `linear-gradient(120deg, rgba(15,98,254,0.04), rgba(255,255,255,0.02)), linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02))`
+                  : `linear-gradient(120deg, rgba(15,98,254,0.03), rgba(255,255,255,0.95))`,
+              }}
+            >
+              <div className="grid gap-5 p-5 md:p-6 xl:grid-cols-[1.05fr_0.95fr]">
+                <div>
+                  <div className="flex items-start gap-3 flex-wrap">
+                    <div className="text-3xl">{domain.icon}</div>
+                    <div className="min-w-[220px] flex-1">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: domain.color }}>
+                        {ui.labels.domain} {domain.id}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                      <div className="display-font mt-2 text-2xl font-semibold">{domain.label}</div>
+                      <p className={`mt-3 text-sm leading-7 ${tokens.muted}`}>{guide.focus}</p>
+                    </div>
 
-                <div className={`${subtle} border ${dark ? "border-ink-400" : "border-gray-200"} rounded-2xl p-4`}>
-                  <div className="text-xs font-semibold mb-2">{ui.labels.commonTraps}</div>
-                  <div className="space-y-2">
-                    {guide.commonTraps.map((item) => (
-                      <div key={item} className={`text-xs leading-6 pl-3 ${muted}`} style={{ borderLeft: "2px solid #eab308" }}>
-                        {item}
+                    <div className="min-w-[210px]">
+                      <div className={`mb-2 flex items-center justify-between text-[11px] ${tokens.muted}`}>
+                        <span>{ui.labels.studiedProgress(done, domain.objectives.length)}</span>
+                        <span className="font-semibold" style={{ color: domain.color }}>{progress}%</span>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-5">
-                <div className="text-sm font-bold mb-3">{ui.labels.objectiveGuide}</div>
-                <div className="grid gap-3 lg:grid-cols-2">
-                  {domain.objectives.map((objective) => {
-                    const note = objectiveGuide[objective.id];
-                    return (
-                      <div
-                        key={objective.id}
-                        className={`${subtle} border ${dark ? "border-ink-400" : "border-gray-200"} rounded-2xl p-4`}
-                        style={{ borderTop: `3px solid ${domain.color}` }}
+                      <div className={`h-1.5 overflow-hidden rounded-full ${tokens.track}`}>
+                        <div className="h-full rounded-full" style={{ width: `${progress}%`, background: domain.color }} />
+                      </div>
+                      <button
+                        onClick={() => onOpenDomain(domain)}
+                        className="mt-4 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white transition hover:opacity-95"
+                        style={{ backgroundColor: domain.color }}
                       >
-                        <div className="flex items-start gap-2">
-                          <span className="text-xs font-bold mt-0.5" style={{ color: domain.color }}>{objective.id}</span>
-                          <div className="flex-1">
-                            <div className="text-sm font-semibold leading-6">{objective.title}</div>
-                            <div className={`text-[11px] leading-6 mt-1 ${muted}`}>{note?.remember ?? objective.tip}</div>
-                          </div>
-                          {studied[objective.id] && <CheckCircle2 size={16} className="text-green-500 flex-shrink-0 mt-0.5" />}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+                        {ui.actions.openDomainNotes}
+                        <ArrowRight size={14} />
+                      </button>
+                    </div>
+                  </div>
 
-              <div className="flex flex-wrap gap-2 mt-5">
-                {guide.resources.map((resource) => (
-                  <a
-                    key={resource.href}
-                    href={resource.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={`inline-flex items-center gap-2 text-[11px] px-3 py-2 rounded-full border ${dark ? "border-ink-400 bg-ink-800 hover:bg-ink-700" : "border-gray-200 bg-gray-50 hover:bg-gray-100"} transition`}
-                  >
-                    {resource.label} <ExternalLink size={12} />
-                  </a>
-                ))}
+                  <div className="mt-5 grid gap-4 md:grid-cols-2">
+                    <div className={`${tokens.soft} rounded-[24px] border p-4`}>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--ibm-blue-30)" }}>
+                        {ui.labels.mentalModel}
+                      </div>
+                      <div className="mt-3 space-y-2">
+                        {guide.mentalModel.map((item) => (
+                          <div key={item} className={`text-xs leading-6 pl-3 ${tokens.muted}`} style={{ borderLeft: `2px solid ${domain.color}55` }}>
+                            {item}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className={`${tokens.soft} rounded-[24px] border p-4`}>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--ibm-purple-40)" }}>
+                        {ui.labels.commonTraps}
+                      </div>
+                      <div className="mt-3 space-y-2">
+                        {guide.commonTraps.map((item) => (
+                          <div key={item} className={`text-xs leading-6 pl-3 ${tokens.muted}`} style={{ borderLeft: "2px solid #f1c21b" }}>
+                            {item}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className={`${tokens.soft} rounded-[28px] border p-4`}>
+                    <SurfaceKicker tone="blue">{ui.labels.objectiveGuide}</SurfaceKicker>
+                    <div className="mt-4 grid gap-3">
+                      {domain.objectives.map((objective) => {
+                        const note = objectiveGuide[objective.id];
+                        return (
+                          <div
+                            key={objective.id}
+                            className={`${tokens.inset} rounded-[22px] border p-4`}
+                            style={{ borderLeft: `3px solid ${domain.color}` }}
+                          >
+                            <div className="flex items-start gap-3">
+                              <span className="text-xs font-bold mt-0.5" style={{ color: domain.color }}>{objective.id}</span>
+                              <div className="min-w-0 flex-1">
+                                <div className="text-sm font-semibold leading-6">{objective.title}</div>
+                                <div className={`mt-2 text-[11px] leading-6 ${tokens.muted}`}>{note?.remember ?? objective.tip}</div>
+                              </div>
+                              {studied[objective.id] ? <CheckCircle2 size={16} className="text-green-500 mt-0.5" /> : null}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {guide.resources.map((resource) => (
+                      <SurfaceLink key={resource.href} dark={dark} href={resource.href} icon={<ExternalLink size={12} />}>
+                        {resource.label}
+                      </SurfaceLink>
+                    ))}
+                  </div>
+                </div>
               </div>
             </article>
           );

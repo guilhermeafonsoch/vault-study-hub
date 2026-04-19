@@ -144,6 +144,10 @@ export const UI_COPY = {
       title: "Study Vault the way the exam expects you to think about it.",
       intro:
         "A single study surface for the official objectives: deep guide notes, mind-map review, domain drilldowns, flashcards, stats, and a larger practice bank built around the current Vault 1.16 exam scope.",
+      heroTitle: "Pick the study mode that fits the way you want to prepare.",
+      heroIntro:
+        "Guide for understanding, Mind Map for relationships, Quiz for exam pressure, Flashcards for recall, and faster drill views when you just want to move.",
+      heroPanelCaption: "Choose the study surface that matches your session.",
       primaryCta: "Open guide",
       secondaryCta: "Start quiz",
       tertiaryCta: "Explore domains",
@@ -158,8 +162,10 @@ export const UI_COPY = {
         "Vault 1.16 scope, 9 domains, 40 official objectives, bilingual UI, and a practice flow that moves from understanding to recall.",
       nextFocusTitle: "Start where you are",
       nextFocusBody: "These are the best next domains to open if you want the fastest study payoff from your current progress.",
+      nextFocusHeadline: "Open a domain directly when you already know what needs work.",
       studySurfacesTitle: "Study surfaces",
       studySurfacesBody: "Pick the surface that matches the kind of studying you need right now.",
+      studySurfacesHeadline: "Everything the site offers, in one place.",
       routesTitle: "Suggested routes",
       routeOneTitle: "First pass",
       routeOneBody:
@@ -333,6 +339,10 @@ export const UI_COPY = {
       title: "Estude Vault do jeito que a prova espera que você pense.",
       intro:
         "Uma superfície única de estudo para os objetivos oficiais: guia aprofundado, revisão por mapa mental, drilldown por domínio, flashcards, estatísticas e um banco maior de questões alinhado ao escopo atual do Vault 1.16.",
+      heroTitle: "Escolha o modo de estudo que combina com a forma como você quer se preparar.",
+      heroIntro:
+        "Guia para entendimento, Mapa Mental para relações, Quiz para pressão de prova, Flashcards para lembrança ativa e telas rápidas de drill quando você só quer avançar.",
+      heroPanelCaption: "Escolha a superfície de estudo que combina com a sua sessão.",
       primaryCta: "Abrir guia",
       secondaryCta: "Começar quiz",
       tertiaryCta: "Explorar domínios",
@@ -347,8 +357,10 @@ export const UI_COPY = {
         "Escopo Vault 1.16, 9 domínios, 40 objetivos oficiais, interface bilíngue e um fluxo de estudo que leva do entendimento para a lembrança ativa.",
       nextFocusTitle: "Comece de onde você está",
       nextFocusBody: "Estes são os melhores próximos domínios para abrir se você quiser o maior ganho de estudo a partir do seu progresso atual.",
+      nextFocusHeadline: "Abra um domínio direto quando você já souber o que precisa melhorar.",
       studySurfacesTitle: "Superfícies de estudo",
       studySurfacesBody: "Escolha a superfície que combina com o tipo de estudo que você precisa agora.",
+      studySurfacesHeadline: "Tudo o que o site oferece, em um só lugar.",
       routesTitle: "Rotas sugeridas",
       routeOneTitle: "Primeira passada",
       routeOneBody:

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Search, Moon, Sun, BookOpen, LayoutGrid, ArrowLeft, Map, Brain, Zap, BarChart3, KeyRound, Trash2, FileText, Languages, House,
+  Search, Moon, Sun, BookOpen, LayoutGrid, ArrowLeft, Map, Brain, Zap, BarChart3, Trash2, FileText, Languages, House,
 } from "lucide-react";
 import { usePersistedState } from "./hooks/usePersistedState.js";
 import RadialMap from "./components/RadialMap.jsx";
@@ -14,6 +14,7 @@ import StudyTimer from "./components/StudyTimer.jsx";
 import StatsDashboard from "./components/StatsDashboard.jsx";
 import StudyGuide from "./components/StudyGuide.jsx";
 import HomePage from "./components/HomePage.jsx";
+import { VaultMark } from "./components/BrandMarks.jsx";
 import { useLocale } from "./i18n/LocaleContext.jsx";
 import { readinessLabel } from "./i18n/ui.js";
 
@@ -112,9 +113,14 @@ export default function App() {
           </button>
         )}
         <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-          <KeyRound size={18} className="text-violet-400" />
+          <VaultMark size={20} />
           <span className="font-bold text-base">{ui.appTitle}</span>
-          <span className={`text-[10px] ${dark ? "bg-ink-400" : "bg-gray-200"} px-1.5 py-0.5 rounded`}>003 · v1.16</span>
+          <span
+            className={`text-[10px] px-1.5 py-0.5 rounded border ${dark ? "border-white/10 text-blue-100" : "border-black/10 text-[var(--ibm-blue-80)]"}`}
+            style={{ backgroundColor: dark ? "rgba(15, 98, 254, 0.18)" : "rgba(15, 98, 254, 0.08)" }}
+          >
+            003 · v1.16
+          </span>
         </div>
 
         <div className="flex items-center gap-1.5 flex-1 min-w-[180px] max-w-[260px]">
@@ -124,7 +130,7 @@ export default function App() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={ui.labels.searchPlaceholder}
-            className={`${input} border ${brd} rounded-md px-2.5 py-1 text-xs flex-1 outline-none focus:border-violet-400 transition`}
+            className={`${input} border ${brd} rounded-md px-2.5 py-1 text-xs flex-1 outline-none focus:border-[var(--ibm-blue-60)] transition`}
           />
         </div>
 
@@ -154,7 +160,8 @@ export default function App() {
               key={v}
               onClick={() => { setView(v); setActiveDomain(null); setSearch(""); }}
               title={`${label} (${i + 1})`}
-              className={`flex items-center gap-1 text-[11px] font-medium border ${brd} rounded-md px-2 py-1 transition ${view === v && !showingDetail ? "bg-violet-500 text-white border-violet-500" : btn}`}
+              className={`flex items-center gap-1 text-[11px] font-medium border ${brd} rounded-md px-2 py-1 transition ${view === v && !showingDetail ? "text-white border-transparent" : btn}`}
+              style={view === v && !showingDetail ? { backgroundColor: "var(--ibm-blue-60)" } : undefined}
             >
               <Icon size={12} /> {label}
             </button>
@@ -190,7 +197,10 @@ export default function App() {
           </div>
           <span className="text-[11px] text-gray-400">{studiedCount}/{totalObjectives}</span>
         </div>
-        <span className={`text-[11px] font-semibold ${pct >= 85 ? "text-green-500" : pct >= 50 ? "text-amber-500" : "text-violet-400"}`}>
+        <span
+          className={`text-[11px] font-semibold ${pct >= 85 ? "text-green-500" : pct >= 50 ? "text-amber-500" : ""}`}
+          style={pct < 50 ? { color: "var(--ibm-purple-40)" } : undefined}
+        >
           {pct}% · {readiness}
         </span>
         <span className="text-[10px] text-gray-400 ml-auto hidden md:inline">
@@ -273,7 +283,7 @@ export default function App() {
         <a
           href="https://developer.hashicorp.com/vault/tutorials/associate-cert-003/associate-review-003"
           target="_blank" rel="noreferrer"
-          className="underline hover:text-violet-400"
+          className="underline hover:text-[var(--ibm-purple-40)]"
         >{ui.labels.officialObjectives}</a>
       </footer>
     </div>

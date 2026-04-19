@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Play, Pause, RotateCcw, Timer } from "lucide-react";
+import { getSurfaceTokens } from "./SurfacePrimitives.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 
 /**
@@ -37,19 +38,20 @@ export default function StudyTimer({ dark }) {
     setPreset(mins);
   };
 
-  const brd = dark ? "border-ink-400" : "border-gray-200";
+  const tokens = getSurfaceTokens(dark);
+  const brd = dark ? "border-white/10" : "border-black/10";
   return (
-    <div className={`flex items-center gap-1.5 border ${brd} rounded-lg px-2 py-1 ${dark ? "bg-ink-600" : "bg-white"}`}>
-      <Timer size={12} className={dark ? "text-gray-400" : "text-gray-500"} />
+    <div className={`flex items-center gap-1.5 border ${brd} rounded-full px-2.5 py-1.5 ${dark ? "bg-[#0d1523]" : "bg-white/90"}`}>
+      <Timer size={12} className={dark ? "text-[#a2a9b0]" : "text-[#525252]"} />
       <span className="font-mono text-xs font-semibold tabular-nums">{mm}:{ss}</span>
       <button
         onClick={() => setRunning((r) => !r)}
-        className={`ml-1 p-1 rounded hover:bg-violet-500 hover:text-white transition`}
+        className={`ml-1 rounded-full p-1.5 transition ${tokens.chip}`}
         aria-label={running ? ui.actions.pause : ui.actions.start}
       >
         {running ? <Pause size={12} /> : <Play size={12} />}
       </button>
-      <button onClick={() => reset()} className="p-1 rounded hover:bg-violet-500 hover:text-white transition" aria-label={ui.actions.reset}>
+      <button onClick={() => reset()} className={`rounded-full p-1.5 transition ${tokens.chip}`} aria-label={ui.actions.reset}>
         <RotateCcw size={12} />
       </button>
       <div className="flex gap-0.5 ml-1">
@@ -57,7 +59,8 @@ export default function StudyTimer({ dark }) {
           <button
             key={m}
             onClick={() => reset(m)}
-            className={`text-[10px] px-1.5 py-0.5 rounded ${preset === m ? "bg-violet-500 text-white" : dark ? "bg-ink-400" : "bg-gray-100"}`}
+            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${preset === m ? "text-white" : dark ? "bg-white/10 text-gray-100" : "bg-[#f2f4f8] text-gray-900"}`}
+            style={preset === m ? { backgroundColor: "var(--ibm-blue-60)" } : undefined}
           >{m}</button>
         ))}
       </div>

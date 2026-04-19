@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        mono: ["Fira Code", "JetBrains Mono", "ui-monospace", "monospace"],
+        mono: ["IBM Plex Mono", "ui-monospace", "monospace"],
       },
       colors: {
         ink: {

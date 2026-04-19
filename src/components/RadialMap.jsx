@@ -1,211 +1,235 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Compass, MapPinned } from "lucide-react";
+import { SurfaceCard, SurfaceIntro, SurfaceKicker, SurfaceStat, getSurfaceTokens } from "./SurfacePrimitives.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 
 export default function RadialMap({ studied, onSelect, dark, domainProgress }) {
   const { domains, connections, domainGuides, ui } = useLocale();
+  const tokens = getSurfaceTokens(dark);
   const containerRef = useRef(null);
   const [dims, setDims] = useState({ w: 680, h: 600 });
   const [hovered, setHovered] = useState(null);
 
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
+    const element = containerRef.current;
+    if (!element) return undefined;
+
+    const observer = new ResizeObserver((entries) => {
       const { width } = entries[0].contentRect;
       setDims({ w: Math.max(width, 320), h: Math.max(width * 0.82, 420) });
     });
-    ro.observe(el);
-    return () => ro.disconnect();
+
+    observer.observe(element);
+    return () => observer.disconnect();
   }, []);
 
   const cx = dims.w / 2;
   const cy = dims.h / 2;
-  const R = Math.min(cx, cy) * 0.66;
-  const nodeR = Math.min(46, R * 0.28);
+  const radius = Math.min(cx, cy) * 0.66;
+  const nodeRadius = Math.min(46, radius * 0.28);
 
   const positions = useMemo(
     () =>
-      domains.map((_, i) => {
-        const angle = (i / domains.length) * Math.PI * 2 - Math.PI / 2;
-        return { x: cx + R * Math.cos(angle), y: cy + R * Math.sin(angle) };
+      domains.map((_, index) => {
+        const angle = (index / domains.length) * Math.PI * 2 - Math.PI / 2;
+        return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
       }),
-    [cx, cy, domains, R]
+    [cx, cy, domains, radius]
   );
 
-  const stroke = dark ? "#333946" : "#cbd5e1";
-  const hubFill = dark ? "#1a1d27" : "#ffffff";
-  const hubStroke = dark ? "#3b3f52" : "#9ca3af";
-  const labelColor = dark ? "#c9ccd5" : "#4b5563";
-  const subLabel = dark ? "#9ca3af" : "#6b7280";
-  const card = dark ? "bg-ink-600 border-ink-400" : "bg-white border-gray-200";
-  const muted = dark ? "text-gray-400" : "text-gray-500";
+  const stroke = dark ? "rgba(255,255,255,0.18)" : "rgba(18,22,25,0.16)";
+  const hubFill = dark ? "#0d1523" : "#ffffff";
+  const hubStroke = dark ? "rgba(255,255,255,0.16)" : "rgba(18,22,25,0.14)";
+  const labelColor = dark ? "#d0d7de" : "#4b5563";
+  const subLabel = dark ? "#8d98a5" : "#6b7280";
   const activeDomain = hovered ? domains.find((domain) => domain.id === hovered) : null;
   const activeGuide = activeDomain ? domainGuides[activeDomain.id] : null;
+  const progressAverage = Math.round(domains.reduce((sum, domain) => sum + domainProgress(domain), 0) / domains.length);
+  const studiedCount = Object.values(studied).filter(Boolean).length;
 
   return (
-    <div ref={containerRef} className="w-full relative">
-      <svg width={dims.w} height={dims.h} className="block mx-auto">
-        <defs>
-          <filter id="glow"><feGaussianBlur stdDeviation="3" result="g" /><feMerge><feMergeNode in="g" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
-          {domains.map((d) => (
-            <radialGradient key={`rg${d.id}`} id={`rg${d.id}`}>
-              <stop offset="0%" stopColor={d.color} stopOpacity={dark ? 0.3 : 0.15} />
-              <stop offset="100%" stopColor={d.color} stopOpacity={0} />
-            </radialGradient>
-          ))}
-        </defs>
+    <div className="space-y-6 animate-fade-in">
+      <SurfaceIntro
+        dark={dark}
+        tone="mixed"
+        eyebrow={ui.views.map}
+        title={ui.labels.mapExamChain}
+        body={ui.home.modes.map}
+        stats={[
+          <SurfaceStat key="domains" dark={dark} label={ui.labels.domain} value={`${domains.length}`} body={ui.labels.hoverCue} />,
+          <SurfaceStat key="studied" dark={dark} label={ui.labels.studied} value={`${studiedCount}`} body={ui.labels.localProgress} tone="purple" />,
+          <SurfaceStat key="avg" dark={dark} label={ui.labels.focus} value={`${progressAverage}%`} body={ui.labels.mapIntroBody} />,
+        ]}
+      />
 
-        {/* Connection arcs */}
-        {connections.map(([a, b], i) => {
-          const pa = positions[a - 1];
-          const pb = positions[b - 1];
-          if (!pa || !pb) return null;
-          const da = domains[a - 1];
-          const isHov = hovered === a || hovered === b;
-          const mx = (pa.x + pb.x) / 2;
-          const my = (pa.y + pb.y) / 2;
-          const dx = pb.x - pa.x;
-          const dy = pb.y - pa.y;
-          const len = Math.sqrt(dx * dx + dy * dy) || 1;
-          const nx = (-dy / len) * 22;
-          const ny = (dx / len) * 22;
-          const cpx = mx + nx;
-          const cpy = my + ny;
-          return (
-            <g key={i}>
-              <path
-                d={`M${pa.x},${pa.y} Q${cpx},${cpy} ${pb.x},${pb.y}`}
-                fill="none"
-                stroke={isHov ? da.color : stroke}
-                strokeWidth={isHov ? 2.5 : 1}
-                strokeDasharray={isHov ? "" : "4 3"}
-                opacity={isHov ? 0.9 : 0.35}
-                style={{ transition: "all 0.35s ease" }}
-              />
-              {isHov && (
-                <circle cx={cpx} cy={cpy - 10} r={2} fill={da.color} opacity={0.7}>
-                  <animate attributeName="r" values="2;5;2" dur="1.8s" repeatCount="indefinite" />
-                </circle>
-              )}
-            </g>
-          );
-        })}
+      <section className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+        <SurfaceCard dark={dark}>
+          <SurfaceKicker tone="blue">
+            <MapPinned size={13} />
+            {ui.views.map}
+          </SurfaceKicker>
+          <div ref={containerRef} className={`relative mt-5 w-full overflow-hidden rounded-[28px] border ${dark ? "border-white/10" : "border-black/10"}`}>
+            <div className="vault-grid absolute inset-0 opacity-60" />
+            <svg width={dims.w} height={dims.h} className="relative block mx-auto">
+              <defs>
+                <filter id="glow">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+                {domains.map((domain) => (
+                  <radialGradient key={`gradient-${domain.id}`} id={`gradient-${domain.id}`}>
+                    <stop offset="0%" stopColor={domain.color} stopOpacity={dark ? 0.28 : 0.16} />
+                    <stop offset="100%" stopColor={domain.color} stopOpacity={0} />
+                  </radialGradient>
+                ))}
+              </defs>
 
-        {/* Center hub */}
-        <circle cx={cx} cy={cy} r={nodeR * 1.35} fill={hubFill} stroke={hubStroke} strokeWidth={1.5} />
-        <circle cx={cx} cy={cy} r={nodeR * 1.35 - 4} fill="none" stroke={hubStroke} strokeWidth={0.5} strokeDasharray="3 2" opacity={0.6} />
-        <text x={cx} y={cy - 10} textAnchor="middle" dominantBaseline="central" fill={dark ? "#e8e6e3" : "#1a1a2e"} fontSize={12} fontWeight={800} fontFamily="Inter,system-ui">VAULT</text>
-        <text x={cx} y={cy + 6} textAnchor="middle" dominantBaseline="central" fill={subLabel} fontSize={9.5}>Associate</text>
-        <text x={cx} y={cy + 20} textAnchor="middle" dominantBaseline="central" fill={subLabel} fontSize={8.5} opacity={0.7}>(003) · v1.16</text>
+              {connections.map(([left, right], index) => {
+                const from = positions[left - 1];
+                const to = positions[right - 1];
+                if (!from || !to) return null;
+                const domain = domains[left - 1];
+                const isHighlighted = hovered === left || hovered === right;
+                const midX = (from.x + to.x) / 2;
+                const midY = (from.y + to.y) / 2;
+                const deltaX = to.x - from.x;
+                const deltaY = to.y - from.y;
+                const length = Math.sqrt(deltaX * deltaX + deltaY * deltaY) || 1;
+                const normalX = (-deltaY / length) * 22;
+                const normalY = (deltaX / length) * 22;
+                const controlX = midX + normalX;
+                const controlY = midY + normalY;
 
-        {/* Spokes */}
-        {positions.map((p, i) => (
-          <line key={`spoke${i}`} x1={cx} y1={cy} x2={p.x} y2={p.y} stroke={dark ? "#22252f" : "#e5e7eb"} strokeWidth={0.5} opacity={0.45} />
-        ))}
+                return (
+                  <g key={`connection-${index}`}>
+                    <path
+                      d={`M${from.x},${from.y} Q${controlX},${controlY} ${to.x},${to.y}`}
+                      fill="none"
+                      stroke={isHighlighted ? domain.color : stroke}
+                      strokeWidth={isHighlighted ? 2.5 : 1}
+                      strokeDasharray={isHighlighted ? "" : "4 3"}
+                      opacity={isHighlighted ? 0.9 : 0.35}
+                      style={{ transition: "all 0.35s ease" }}
+                    />
+                  </g>
+                );
+              })}
 
-        {/* Domain nodes */}
-        {domains.map((d, i) => {
-          const p = positions[i];
-          const prog = domainProgress(d);
-          const isHov = hovered === d.id;
-          const scale = isHov ? 1.13 : 1;
-          const circumference = 2 * Math.PI * nodeR;
-          const offset = circumference * (1 - prog / 100);
-          return (
-            <g
-              key={d.id}
-              className="cursor-pointer"
-              style={{ transition: "transform 0.25s ease", transformOrigin: `${p.x}px ${p.y}px`, transform: `scale(${scale})` }}
-              onMouseEnter={() => setHovered(d.id)}
-              onMouseLeave={() => setHovered(null)}
-              onClick={() => onSelect(d)}
-            >
-              {isHov && <circle cx={p.x} cy={p.y} r={nodeR + 18} fill={`url(#rg${d.id})`} />}
-              <circle cx={p.x} cy={p.y} r={nodeR} fill={hubFill} stroke={isHov ? d.color : (dark ? "#2a2d3a" : "#d1d5db")} strokeWidth={isHov ? 2 : 1} style={{ transition: "all 0.3s" }} />
-              <circle
-                cx={p.x}
-                cy={p.y}
-                r={nodeR}
-                fill="none"
-                stroke={d.color}
-                strokeWidth={3}
-                strokeDasharray={circumference}
-                strokeDashoffset={offset}
-                strokeLinecap="round"
-                opacity={0.75}
-                transform={`rotate(-90 ${p.x} ${p.y})`}
-                style={{ transition: "stroke-dashoffset 0.6s ease" }}
-              />
-              <text x={p.x} y={p.y - 4} textAnchor="middle" dominantBaseline="central" fontSize={20}>{d.icon}</text>
-              <text x={p.x} y={p.y + 15} textAnchor="middle" dominantBaseline="central" fill={subLabel} fontSize={8.5} fontWeight={600}>D{d.id}</text>
-              {prog === 100 && <circle cx={p.x + nodeR * 0.65} cy={p.y - nodeR * 0.65} r={7} fill="#22c55e" stroke={hubFill} strokeWidth={2} />}
-              <text x={p.x} y={p.y + nodeR + 16} textAnchor="middle" dominantBaseline="central" fill={isHov ? d.color : labelColor} fontSize={10.5} fontWeight={isHov ? 700 : 500} style={{ transition: "all 0.3s" }}>
-                {d.mapLabel ?? (d.label.length > 20 ? d.label.slice(0, 18) + "…" : d.label)}
-              </text>
-              <text x={p.x} y={p.y + nodeR + 29} textAnchor="middle" dominantBaseline="central" fill={d.color} fontSize={9} fontWeight={600} opacity={0.8}>
-                {prog}%
-              </text>
-            </g>
-          );
-        })}
-      </svg>
+              <circle cx={cx} cy={cy} r={nodeRadius * 1.35} fill={hubFill} stroke={hubStroke} strokeWidth={1.5} />
+              <circle cx={cx} cy={cy} r={nodeRadius * 1.35 - 4} fill="none" stroke={hubStroke} strokeWidth={0.5} strokeDasharray="3 2" opacity={0.6} />
+              <text x={cx} y={cy - 10} textAnchor="middle" dominantBaseline="central" fill={dark ? "#ffffff" : "#121619"} fontSize={12} fontWeight={800} fontFamily="IBM Plex Sans, sans-serif">VAULT</text>
+              <text x={cx} y={cy + 6} textAnchor="middle" dominantBaseline="central" fill={subLabel} fontSize={9.5}>Associate</text>
+              <text x={cx} y={cy + 20} textAnchor="middle" dominantBaseline="central" fill={subLabel} fontSize={8.5} opacity={0.7}>(003) · v1.16</text>
 
-      <div className={`text-center text-[11px] ${muted} pt-1`}>
-        {ui.labels.hoverCue}
-      </div>
+              {positions.map((position, index) => (
+                <line key={`spoke-${index}`} x1={cx} y1={cy} x2={position.x} y2={position.y} stroke={dark ? "#22252f" : "#dde1e6"} strokeWidth={0.5} opacity={0.45} />
+              ))}
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-1.5 justify-center pt-1 pb-2 max-w-3xl mx-auto">
-        {connections.map(([a, b, label], i) => (
-          <span
-            key={i}
-            className={`text-[10px] ${dark ? "bg-ink-600 border-ink-400 text-gray-400" : "bg-gray-100 border-gray-200 text-gray-600"} px-2 py-0.5 rounded border`}
-          >
-            <span style={{ color: domains[a - 1].color }}>{domains[a - 1].icon}</span>
-            {" → "}
-            <span style={{ color: domains[b - 1].color }}>{domains[b - 1].icon}</span>
-            {" "}{label}
-          </span>
-        ))}
-      </div>
+              {domains.map((domain, index) => {
+                const position = positions[index];
+                const progress = domainProgress(domain);
+                const isHovered = hovered === domain.id;
+                const scale = isHovered ? 1.13 : 1;
+                const circumference = 2 * Math.PI * nodeRadius;
+                const dashOffset = circumference * (1 - progress / 100);
 
-      <div className={`max-w-3xl mx-auto border rounded-2xl p-4 ${card}`}>
-        {!activeDomain && (
-          <div className="space-y-3">
-            <div className="text-[11px] font-bold tracking-[0.18em] text-emerald-500 uppercase">{ui.labels.howToReadMap}</div>
-            <div className="text-sm font-semibold">{ui.labels.mapExamChain}</div>
-            <div className={`text-xs leading-6 ${muted}`}>
-              {ui.labels.mapIntroBody}
-            </div>
+                return (
+                  <g
+                    key={domain.id}
+                    className="cursor-pointer"
+                    style={{ transition: "transform 0.25s ease", transformOrigin: `${position.x}px ${position.y}px`, transform: `scale(${scale})` }}
+                    onMouseEnter={() => setHovered(domain.id)}
+                    onMouseLeave={() => setHovered(null)}
+                    onClick={() => onSelect(domain)}
+                  >
+                    {isHovered ? <circle cx={position.x} cy={position.y} r={nodeRadius + 18} fill={`url(#gradient-${domain.id})`} /> : null}
+                    <circle cx={position.x} cy={position.y} r={nodeRadius} fill={hubFill} stroke={isHovered ? domain.color : hubStroke} strokeWidth={isHovered ? 2 : 1} style={{ transition: "all 0.3s" }} />
+                    <circle
+                      cx={position.x}
+                      cy={position.y}
+                      r={nodeRadius}
+                      fill="none"
+                      stroke={domain.color}
+                      strokeWidth={3}
+                      strokeDasharray={circumference}
+                      strokeDashoffset={dashOffset}
+                      strokeLinecap="round"
+                      opacity={0.8}
+                      transform={`rotate(-90 ${position.x} ${position.y})`}
+                      style={{ transition: "stroke-dashoffset 0.6s ease" }}
+                    />
+                    <text x={position.x} y={position.y - 4} textAnchor="middle" dominantBaseline="central" fontSize={20}>{domain.icon}</text>
+                    <text x={position.x} y={position.y + 15} textAnchor="middle" dominantBaseline="central" fill={subLabel} fontSize={8.5} fontWeight={600}>D{domain.id}</text>
+                    {progress === 100 ? <circle cx={position.x + nodeRadius * 0.65} cy={position.y - nodeRadius * 0.65} r={7} fill="#24a148" stroke={hubFill} strokeWidth={2} /> : null}
+                    <text x={position.x} y={position.y + nodeRadius + 16} textAnchor="middle" dominantBaseline="central" fill={isHovered ? domain.color : labelColor} fontSize={10.5} fontWeight={isHovered ? 700 : 500}>
+                      {domain.mapLabel ?? (domain.label.length > 20 ? `${domain.label.slice(0, 18)}…` : domain.label)}
+                    </text>
+                    <text x={position.x} y={position.y + nodeRadius + 29} textAnchor="middle" dominantBaseline="central" fill={domain.color} fontSize={9} fontWeight={600} opacity={0.85}>
+                      {progress}%
+                    </text>
+                  </g>
+                );
+              })}
+            </svg>
           </div>
-        )}
+          <div className={`pt-4 text-center text-[11px] ${tokens.muted}`}>{ui.labels.hoverCue}</div>
+        </SurfaceCard>
 
-        {activeDomain && activeGuide && (
-          <div>
-            <div className="flex items-start gap-3">
+        <SurfaceCard dark={dark}>
+          <SurfaceKicker tone="purple">
+            <Compass size={13} />
+            {ui.labels.howToReadMap}
+          </SurfaceKicker>
+
+          {!activeDomain || !activeGuide ? (
+            <div className="mt-4 space-y-4">
+              <div className="display-font text-3xl font-semibold">{ui.labels.mapCue}</div>
+              <div className={`text-sm leading-7 ${tokens.muted}`}>{ui.labels.mapIntroBody}</div>
+              <div className="space-y-2">
+                {connections.map(([left, right, label]) => (
+                  <div key={`${left}-${right}-${label}`} className={`${tokens.soft} rounded-[20px] border px-4 py-3 text-xs leading-6`}>
+                    <span style={{ color: domains[left - 1].color }}>{domains[left - 1].icon}</span>
+                    {" → "}
+                    <span style={{ color: domains[right - 1].color }}>{domains[right - 1].icon}</span>
+                    <span className={`ml-2 ${tokens.muted}`}>{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="mt-4">
+              <div className="flex items-start gap-3">
                 <div className="text-3xl">{activeDomain.icon}</div>
-              <div className="min-w-0">
-                <div className="text-[11px] font-bold tracking-wide uppercase" style={{ color: activeDomain.color }}>
-                  {ui.labels.domain} {activeDomain.id}
+                <div className="min-w-0">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: activeDomain.color }}>
+                    {ui.labels.domain} {activeDomain.id}
+                  </div>
+                  <div className="mt-2 text-xl font-semibold">{activeDomain.label}</div>
+                  <div className={`mt-2 text-sm leading-7 ${tokens.muted}`}>{activeGuide.focus}</div>
                 </div>
-                <div className="text-sm font-semibold">{activeDomain.label}</div>
-                <div className={`text-xs leading-6 mt-1 ${muted}`}>{activeGuide.focus}</div>
               </div>
-            </div>
 
-            <div className="grid gap-3 md:grid-cols-2 mt-4">
-              <div className={`${dark ? "bg-ink-800 border-ink-400" : "bg-gray-50 border-gray-200"} border rounded-2xl p-3`}>
-                <div className="text-[11px] font-semibold mb-1">{ui.labels.mapCue}</div>
-                <div className={`text-xs leading-6 ${muted}`}>{activeGuide.mentalModel[0]}</div>
-              </div>
-              <div className={`${dark ? "bg-ink-800 border-ink-400" : "bg-gray-50 border-gray-200"} border rounded-2xl p-3`}>
-                <div className="text-[11px] font-semibold mb-1">{ui.labels.commonTraps}</div>
-                <div className={`text-xs leading-6 ${muted}`}>{activeGuide.commonTraps[0]}</div>
+              <div className="mt-5 grid gap-3">
+                <div className={`${tokens.soft} rounded-[20px] border p-4`}>
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--ibm-blue-30)" }}>
+                    {ui.labels.mapCue}
+                  </div>
+                  <div className={`mt-2 text-xs leading-6 ${tokens.muted}`}>{activeGuide.mentalModel[0]}</div>
+                </div>
+                <div className={`${tokens.soft} rounded-[20px] border p-4`}>
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "#f1c21b" }}>
+                    {ui.labels.commonTraps}
+                  </div>
+                  <div className={`mt-2 text-xs leading-6 ${tokens.muted}`}>{activeGuide.commonTraps[0]}</div>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </SurfaceCard>
+      </section>
     </div>
   );
 }

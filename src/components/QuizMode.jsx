@@ -1,12 +1,14 @@
 import { useMemo, useState } from "react";
-import { Check, X, RotateCcw, ChevronRight, Trophy, BookOpen, ExternalLink } from "lucide-react";
+import { BookOpen, Check, ChevronRight, ExternalLink, RotateCcw, Trophy, X } from "lucide-react";
 import { getQuestionDomain, shuffle } from "../data/quiz.js";
+import { SurfaceCard, SurfaceIntro, SurfaceKicker, SurfaceLink, SurfaceStat, getSurfaceTokens } from "./SurfacePrimitives.jsx";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 
 export default function QuizMode({ dark }) {
   const { domains, quiz, totalObjectives, allObjectives, domainGuides, objectiveGuide, ui } = useLocale();
-  const [filter, setFilter] = useState("all"); // domain id or "all"
-  const [order, setOrder] = useState(() => shuffle(quiz.map((q) => q.id)));
+  const tokens = getSurfaceTokens(dark);
+  const [filter, setFilter] = useState("all");
+  const [order, setOrder] = useState(() => shuffle(quiz.map((question) => question.id)));
   const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState(null);
   const [correct, setCorrect] = useState(0);
@@ -14,44 +16,38 @@ export default function QuizMode({ dark }) {
   const [finished, setFinished] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
 
-  const card = dark ? "bg-ink-600" : "bg-white";
-  const brd = dark ? "border-ink-400" : "border-gray-200";
-  const t2 = dark ? "text-gray-400" : "text-gray-500";
-
-  const pool = useMemo(() => {
-    const ids = order
-      .map((id) => quiz.find((q) => q.id === id))
-      .filter(Boolean)
-      .filter((q) => filter === "all" || getQuestionDomain(q) === String(filter));
-    return ids;
-  }, [filter, order, quiz]);
   const objectiveLookup = useMemo(
     () => Object.fromEntries(allObjectives.map((objective) => [objective.id, objective])),
     [allObjectives]
   );
-  const coveredObjectives = useMemo(() => new Set(quiz.map((question) => question.obj)).size, [quiz]);
-  const reviewCount = useMemo(
-    () => quiz.filter((question) => getQuestionDomain(question) === "review").length,
-    [quiz]
-  );
-  const activeDomain = useMemo(
-    () => domains.find((domain) => String(domain.id) === String(filter)),
-    [domains, filter]
+
+  const pool = useMemo(
+    () =>
+      order
+        .map((id) => quiz.find((question) => question.id === id))
+        .filter(Boolean)
+        .filter((question) => filter === "all" || getQuestionDomain(question) === String(filter)),
+    [filter, order, quiz]
   );
 
-  const q = pool[idx];
-  const isReviewQuestion = q ? getQuestionDomain(q) === "review" : false;
-  const guideObjectiveId = q
-    ? (q.guideObjective === false ? null : (q.guideObjective ?? q.obj))
+  const coveredObjectives = useMemo(() => new Set(quiz.map((question) => question.obj)).size, [quiz]);
+  const reviewCount = useMemo(() => quiz.filter((question) => getQuestionDomain(question) === "review").length, [quiz]);
+  const activeDomain = useMemo(() => domains.find((domain) => String(domain.id) === String(filter)), [domains, filter]);
+
+  const question = pool[idx];
+  const isReviewQuestion = question ? getQuestionDomain(question) === "review" : false;
+  const guideObjectiveId = question
+    ? (question.guideObjective === false ? null : (question.guideObjective ?? question.obj))
     : null;
   const objective = guideObjectiveId ? objectiveLookup[guideObjectiveId] : null;
-  const questionDomain = q && !isReviewQuestion
-    ? domains.find((domain) => String(domain.id) === String(Number.parseInt(guideObjectiveId ?? q.obj, 10)))
+  const questionDomain = question && !isReviewQuestion
+    ? domains.find((domain) => String(domain.id) === String(Number.parseInt(guideObjectiveId ?? question.obj, 10)))
     : null;
   const note = guideObjectiveId ? objectiveGuide[guideObjectiveId] : null;
+
   const questionDocs = useMemo(() => {
-    if (!q) return [];
-    if (q.docs?.length) return q.docs;
+    if (!question) return [];
+    if (question.docs?.length) return question.docs;
     const domainDocs = questionDomain ? (domainGuides[questionDomain.id]?.resources ?? []) : [];
     const seen = new Set();
     return domainDocs.filter((doc) => {
@@ -59,10 +55,21 @@ export default function QuizMode({ dark }) {
       seen.add(doc.href);
       return true;
     }).slice(0, 4);
-  }, [domainGuides, q, questionDomain]);
+  }, [domainGuides, question, questionDomain]);
+
+  const filterSummary = filter === "all"
+    ? ui.home.questionBankNote
+    : filter === "review"
+      ? ui.labels.mapExamChain
+      : activeDomain?.summary;
+  const filterTitle = filter === "all"
+    ? ui.labels.all
+    : filter === "review"
+      ? ui.labels.mixedReview
+      : `${ui.labels.domain} ${activeDomain?.id}`;
 
   const reset = (nextFilter = filter) => {
-    setOrder(shuffle(quiz.map((x) => x.id)));
+    setOrder(shuffle(quiz.map((entry) => entry.id)));
     setIdx(0);
     setPicked(null);
     setCorrect(0);
@@ -72,262 +79,292 @@ export default function QuizMode({ dark }) {
     setShowDocs(false);
   };
 
-  const submit = (choiceIdx) => {
-    if (picked !== null) return;
-    setPicked(choiceIdx);
-    setAnswered((a) => a + 1);
-    if (choiceIdx === q.answer) setCorrect((c) => c + 1);
+  const submit = (choiceIndex) => {
+    if (picked !== null || !question) return;
+    setPicked(choiceIndex);
+    setAnswered((value) => value + 1);
+    if (choiceIndex === question.answer) setCorrect((value) => value + 1);
   };
 
   const next = () => {
     if (idx + 1 >= pool.length) {
       setFinished(true);
     } else {
-      setIdx(idx + 1);
+      setIdx((value) => value + 1);
       setPicked(null);
       setShowDocs(false);
     }
   };
 
-  if (!q && !finished) {
-    return <div className={`text-center ${t2} py-10 text-sm`}>{ui.labels.noQuestions}</div>;
+  if (!question && !finished) {
+    return (
+      <SurfaceCard dark={dark}>
+        <div className={`py-10 text-center text-sm ${tokens.muted}`}>{ui.labels.noQuestions}</div>
+      </SurfaceCard>
+    );
   }
 
   if (finished) {
     const pct = Math.round((correct / Math.max(answered, 1)) * 100);
-    const band =
-      pct >= 85 ? { title: ui.labels.strongRecall, color: "text-green-500", icon: "text-emerald-400" }
-      : pct >= 65 ? { title: ui.labels.solidBase, color: "text-amber-500", icon: "text-amber-400" }
-      : { title: ui.labels.keepDrilling, color: t2, icon: "text-gray-400" };
+    const band = pct >= 85
+      ? { title: ui.labels.strongRecall, accent: "#24a148" }
+      : pct >= 65
+        ? { title: ui.labels.solidBase, accent: "#f1c21b" }
+        : { title: ui.labels.keepDrilling, accent: "var(--ibm-purple-40)" };
+
     return (
-      <div className={`${card} border ${brd} rounded-2xl p-8 max-w-lg mx-auto text-center animate-fade-in`}>
-        <Trophy size={48} className={`mx-auto mb-3 ${band.icon}`} />
-        <div className="text-2xl font-bold mb-1">{band.title}</div>
-        <div className={`text-sm ${t2} mb-4`}>
-          {ui.labels.correctProgress(correct, answered)} · <span className={band.color}>{pct}%</span>
-        </div>
-        <div className={`text-xs leading-6 ${t2} mb-5`}>
-          {ui.labels.quizStudyAid}
-        </div>
-        <button
-          onClick={() => reset()}
-          className="px-4 py-2 rounded-lg font-semibold text-sm bg-violet-500 text-white hover:bg-violet-600 transition"
-        >
-          <RotateCcw size={14} className="inline-block mr-1" /> {ui.actions.retry}
-        </button>
+      <div className="space-y-6 animate-fade-in">
+        <SurfaceIntro
+          dark={dark}
+          tone="purple"
+          eyebrow={filterTitle}
+          title={band.title}
+          body={ui.labels.quizStudyAid}
+          stats={[
+            <SurfaceStat key="score" dark={dark} label={ui.labels.correct} value={`${pct}%`} body={ui.labels.correctProgress(correct, answered)} tone="purple" />,
+            <SurfaceStat key="answered" dark={dark} label={ui.labels.question} value={`${answered}`} body={ui.labels.singleAnswerMode} />,
+            <SurfaceStat key="coverage" dark={dark} label={ui.labels.objectiveCoverage} value={`${coveredObjectives}/${totalObjectives}`} body={ui.labels.quizCoverage} />,
+          ]}
+        />
+
+        <SurfaceCard dark={dark} className="mx-auto max-w-2xl text-center">
+          <Trophy size={48} className="mx-auto" style={{ color: band.accent }} />
+          <div className="display-font mt-4 text-3xl font-semibold">{band.title}</div>
+          <div className={`mt-3 text-sm ${tokens.muted}`}>{ui.labels.correctProgress(correct, answered)}</div>
+          <button
+            onClick={() => reset()}
+            className="mt-6 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white transition hover:opacity-95"
+            style={{ backgroundColor: "var(--ibm-blue-60)" }}
+          >
+            <RotateCcw size={14} />
+            {ui.actions.retry}
+          </button>
+        </SurfaceCard>
       </div>
     );
   }
 
-  const isCorrect = picked === q.answer;
-  const choiceReviews = q.choices.map((choice, index) => ({
+  const choiceReviews = question.choices.map((choice, index) => ({
     choice,
-    isCorrect: index === q.answer,
-    reason: q.choiceNotes?.[index]
-      ?? buildChoiceReason({
-        question: q,
-        choice,
-        index,
-        objective,
-        note,
-      }),
+    isCorrect: index === question.answer,
+    reason: question.choiceNotes?.[index] ?? buildChoiceReason({ question, choice, index, objective, note }),
   }));
+  const progressPct = pool.length ? (idx / pool.length) * 100 : 0;
+  const isCorrect = picked === question.answer;
+
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Filter pills */}
-      <div className="flex flex-wrap gap-1 mb-4">
-        <button
-          onClick={() => reset("all")}
-          className={`text-[11px] px-2.5 py-1 rounded border ${filter === "all" ? "bg-violet-500 text-white border-violet-500" : `${card} ${brd}`}`}
-        >{ui.labels.all} ({quiz.length})</button>
-        {domains.map((d) => {
-          const n = quiz.filter((question) => getQuestionDomain(question) === String(d.id)).length;
-          if (!n) return null;
-          return (
-            <button
-              key={d.id}
-              onClick={() => reset(String(d.id))}
-              className={`text-[11px] px-2.5 py-1 rounded border ${filter === String(d.id) ? "text-white" : `${card} ${brd}`}`}
-              style={filter === String(d.id) ? { background: d.color, borderColor: d.color } : {}}
-            >{d.icon} D{d.id} ({n})</button>
-          );
-        })}
-        {reviewCount > 0 && (
-          <button
-            onClick={() => reset("review")}
-            className={`text-[11px] px-2.5 py-1 rounded border ${filter === "review" ? "bg-emerald-500 text-white border-emerald-500" : `${card} ${brd}`}`}
-          >
-            {ui.labels.mixedReview} ({reviewCount})
-          </button>
-        )}
-      </div>
+    <div className="space-y-6 animate-fade-in">
+      <SurfaceIntro
+        dark={dark}
+        tone="purple"
+        eyebrow={ui.views.quiz}
+        title={filterTitle}
+        body={ui.home.modes.quiz}
+        stats={[
+          <SurfaceStat key="bank" dark={dark} label={ui.home.questionBank} value={`${quiz.length}`} body={filterSummary ?? ui.home.questionBankNote} tone="purple" />,
+          <SurfaceStat key="coverage" dark={dark} label={ui.labels.objectiveCoverage} value={`${coveredObjectives}/${totalObjectives}`} body={ui.labels.quizCoverage} />,
+          <SurfaceStat key="run" dark={dark} label={ui.labels.correct} value={`${correct}/${answered}`} body={ui.labels.singleAnswerMode} />,
+        ]}
+      />
 
-      <div className={`text-[11px] ${t2} mb-3`}>
-        {ui.labels.singleAnswerMode} · {ui.home.questionsForDomain(quiz.length)} · {coveredObjectives} / {totalObjectives} {ui.labels.objectives}
-      </div>
-
-      {(activeDomain || filter === "review") && (
-        <div className={`${card} border ${brd} rounded-2xl p-4 mb-4`}>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-400">
-            {filter === "review" ? ui.labels.mixedReview : `${ui.labels.domain} ${activeDomain?.id}`}
-          </div>
-          <div className="text-sm font-semibold mt-2">
-            {filter === "review" ? ui.home.questionBankNote : activeDomain?.label}
-          </div>
-          <div className={`text-xs leading-6 mt-2 ${t2}`}>
-            {filter === "review" ? ui.labels.mapExamChain : activeDomain?.summary}
-          </div>
-        </div>
-      )}
-
-      {/* Progress */}
-      <div className={`text-[11px] ${t2} mb-2 flex justify-between`}>
-        <span>{ui.labels.questionProgress(idx + 1, pool.length)}</span>
-        <span>{ui.labels.correctProgress(correct, answered)}</span>
-      </div>
-      <div className={`h-1 ${dark ? "bg-ink-400" : "bg-gray-200"} rounded overflow-hidden mb-4`}>
-        <div className="h-full bg-violet-500 transition-all" style={{ width: `${((idx) / pool.length) * 100}%` }} />
-      </div>
-
-      {/* Card */}
-      <div className={`${card} border ${brd} rounded-2xl p-6 animate-fade-in`}>
-        <div className={`text-[10px] ${t2} mb-2 tracking-wider uppercase`}>
-          {isReviewQuestion
-            ? `${ui.labels.mixedReview}${q.reviewObjectives?.length ? ` · ${q.reviewObjectives.join(" · ")}` : ""}`
-            : `${ui.labels.objective} ${q.obj}${objective ? ` · ${objective.title}` : ""}`}
-        </div>
-        <div className="text-base font-semibold leading-7 mb-5">{q.question}</div>
-
-        <div className="flex flex-wrap gap-2 mb-5">
-          <button
-            onClick={() => setShowDocs((value) => !value)}
-            className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${dark ? "border-ink-400 bg-ink-700 hover:bg-ink-800" : "border-gray-200 bg-gray-50 hover:bg-gray-100"}`}
-          >
-            <BookOpen size={13} />
-            {showDocs ? ui.actions.hideDocs : ui.actions.showDocs}
-          </button>
-        </div>
-
-        {showDocs && (
-          <div className={`mb-5 rounded-2xl border p-4 ${dark ? "border-ink-400 bg-ink-700/70" : "border-gray-200 bg-gray-50"}`}>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-400">
-              {ui.labels.officialDocsForQuestion}
-            </div>
-            <div className={`text-xs leading-6 mt-2 ${t2}`}>
-              {ui.labels.sourceLinks}
-            </div>
-            <div className="flex flex-wrap gap-2 mt-3">
-              {questionDocs.map((doc) => (
-                <a
-                  key={doc.href}
-                  href={doc.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-medium transition ${dark ? "border-ink-400 bg-ink-800 hover:bg-ink-700" : "border-gray-200 bg-white hover:bg-gray-100"}`}
-                >
-                  {doc.label}
-                  <ExternalLink size={12} />
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="flex flex-col gap-2">
-          {q.choices.map((choice, i) => {
-            let cls = `${card} ${brd} hover:border-violet-400`;
-            if (picked !== null) {
-              if (i === q.answer) cls = "bg-green-500/15 border-green-500 text-green-400";
-              else if (i === picked) cls = "bg-red-500/15 border-red-500 text-red-400";
-              else cls = `${card} ${brd} opacity-60`;
-            }
+      <SurfaceCard dark={dark}>
+        <SurfaceKicker tone="purple">{ui.labels.quizCoverage}</SurfaceKicker>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <FilterPill
+            dark={dark}
+            active={filter === "all"}
+            onClick={() => reset("all")}
+            tone="var(--ibm-blue-60)"
+            label={`${ui.labels.all} (${quiz.length})`}
+          />
+          {domains.map((domain) => {
+            const count = quiz.filter((entry) => getQuestionDomain(entry) === String(domain.id)).length;
+            if (!count) return null;
             return (
-              <button
-                key={i}
-                disabled={picked !== null}
-                onClick={() => submit(i)}
-                className={`text-left px-4 py-3 rounded-lg border text-sm transition-all flex items-center gap-2 ${cls}`}
-              >
-                <span className={`w-5 h-5 flex-shrink-0 rounded-full border flex items-center justify-center text-[10px] font-bold ${brd}`}>
-                  {String.fromCharCode(65 + i)}
-                </span>
-                <span className="flex-1">{choice}</span>
-                {picked !== null && i === q.answer && <Check size={16} className="text-green-500" />}
-                {picked !== null && i === picked && i !== q.answer && <X size={16} className="text-red-500" />}
-              </button>
+              <FilterPill
+                key={domain.id}
+                dark={dark}
+                active={filter === String(domain.id)}
+                onClick={() => reset(String(domain.id))}
+                tone={domain.color}
+                label={`${domain.icon} D${domain.id} (${count})`}
+              />
             );
           })}
+          {reviewCount > 0 ? (
+            <FilterPill
+              dark={dark}
+              active={filter === "review"}
+              onClick={() => reset("review")}
+              tone="#24a148"
+              label={`${ui.labels.mixedReview} (${reviewCount})`}
+            />
+          ) : null}
         </div>
 
-        {picked !== null && (
-          <div className="mt-4 space-y-3">
-            <div className={`p-3 rounded-lg text-xs leading-6 ${isCorrect ? "bg-green-500/10 text-green-300" : "bg-red-500/10 text-red-300"}`}>
-              <strong>{isCorrect ? `${ui.labels.correctAnswer} ` : `${ui.labels.incorrectAnswer} `}</strong>{q.explain}
+        <div className="mt-6 grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+          <div className={`${tokens.soft} rounded-[24px] border p-4`}>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--ibm-purple-40)" }}>
+                  {ui.labels.questionProgress(idx + 1, pool.length)}
+                </div>
+                <div className="mt-2 text-sm font-semibold">{filterTitle}</div>
+              </div>
+              <div className="text-sm font-semibold">{ui.labels.correctProgress(correct, answered)}</div>
+            </div>
+            <div className={`mt-4 h-2 overflow-hidden rounded-full ${tokens.track}`}>
+              <div className="h-full rounded-full" style={{ width: `${progressPct}%`, background: "var(--ibm-purple-40)" }} />
+            </div>
+            <div className={`mt-4 text-xs leading-6 ${tokens.muted}`}>{filterSummary}</div>
+          </div>
+
+          <div
+            className={`${tokens.panelStrong} rounded-[28px] border p-5 md:p-6`}
+            style={{
+              background: dark
+                ? "linear-gradient(120deg, rgba(190,149,255,0.1), rgba(255,255,255,0.02))"
+                : "linear-gradient(120deg, rgba(190,149,255,0.07), rgba(255,255,255,0.98))",
+            }}
+          >
+            <div className={`text-[11px] uppercase tracking-[0.16em] ${tokens.muted}`}>
+              {isReviewQuestion
+                ? `${ui.labels.mixedReview}${question.reviewObjectives?.length ? ` · ${question.reviewObjectives.join(" · ")}` : ""}`
+                : `${ui.labels.objective} ${question.obj}${objective ? ` · ${objective.title}` : ""}`}
+            </div>
+            <div className="mt-3 text-lg font-semibold leading-8">{question.question}</div>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              <button
+                onClick={() => setShowDocs((value) => !value)}
+                className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition ${tokens.chip}`}
+              >
+                <BookOpen size={13} />
+                {showDocs ? ui.actions.hideDocs : ui.actions.showDocs}
+              </button>
             </div>
 
-            <div className={`rounded-2xl border p-4 ${dark ? "border-ink-400 bg-ink-700/70" : "border-gray-200 bg-gray-50"}`}>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-400">
-                {ui.labels.answerReview}
-              </div>
-              <div className="mt-3">
-                <div className="text-xs font-semibold text-green-500">{ui.labels.whyThisIsCorrect}</div>
-                <div className={`text-xs leading-6 mt-2 ${t2}`}>
-                  {q.correctReview ?? buildCorrectReview(q, note)}
-                </div>
-              </div>
-              <div className="mt-4">
-                <div className="text-xs font-semibold text-violet-400">{ui.labels.optionBreakdown}</div>
-                <div className="space-y-2 mt-3">
-                  {choiceReviews.map((item, reviewIndex) => (
-                    <div
-                      key={`${q.id}-review-${reviewIndex}`}
-                      className={`rounded-xl border px-3 py-3 ${item.isCorrect ? "border-green-500/30 bg-green-500/10" : dark ? "border-ink-400 bg-ink-800" : "border-gray-200 bg-white"}`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <span className={`w-5 h-5 rounded-full border flex items-center justify-center text-[10px] font-bold ${item.isCorrect ? "border-green-500 text-green-500" : dark ? "border-ink-300 text-gray-300" : "border-gray-300 text-gray-600"}`}>
-                          {String.fromCharCode(65 + reviewIndex)}
-                        </span>
-                        <div className="flex-1">
-                          <div className="text-xs font-semibold">
-                            {item.choice}
-                          </div>
-                          <div className={`text-[11px] mt-1 ${item.isCorrect ? "text-green-400" : t2}`}>
-                            {item.isCorrect ? ui.labels.whyThisIsCorrect : ui.labels.whyThisIsNotBest}
-                          </div>
-                          <div className={`text-xs leading-6 mt-2 ${item.isCorrect ? "text-green-200" : t2}`}>
-                            {item.reason}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+            {showDocs ? (
+              <div className={`${tokens.soft} mt-5 rounded-[24px] border p-4`}>
+                <SurfaceKicker tone="purple">{ui.labels.officialDocsForQuestion}</SurfaceKicker>
+                <div className={`mt-2 text-xs leading-6 ${tokens.muted}`}>{ui.labels.sourceLinks}</div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {questionDocs.map((doc) => (
+                    <SurfaceLink key={doc.href} dark={dark} href={doc.href} icon={<ExternalLink size={12} />}>
+                      {doc.label}
+                    </SurfaceLink>
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            ) : null}
 
-        <div className="flex justify-end mt-5">
-          {picked !== null && (
-            <button
-              onClick={next}
-              className="px-4 py-2 rounded-lg text-sm font-semibold bg-violet-500 text-white hover:bg-violet-600 transition flex items-center gap-1"
-            >
-              {idx + 1 >= pool.length ? ui.labels.seeResults : ui.actions.next} <ChevronRight size={14} />
-            </button>
-          )}
+            <div className="mt-5 flex flex-col gap-2">
+              {question.choices.map((choice, index) => {
+                const isChoiceCorrect = index === question.answer;
+                const isChoicePicked = index === picked;
+                const activeStyle = picked !== null && isChoiceCorrect
+                  ? { background: dark ? "rgba(36, 161, 72, 0.16)" : "rgba(36, 161, 72, 0.12)", borderColor: "rgba(36, 161, 72, 0.48)" }
+                  : picked !== null && isChoicePicked
+                    ? { background: dark ? "rgba(218, 30, 40, 0.16)" : "rgba(218, 30, 40, 0.08)", borderColor: "rgba(218, 30, 40, 0.42)" }
+                    : undefined;
+
+                return (
+                  <button
+                    key={`${question.id}-${index}`}
+                    disabled={picked !== null}
+                    onClick={() => submit(index)}
+                    className={`flex items-center gap-3 rounded-[22px] border px-4 py-4 text-left text-sm transition ${picked !== null && !isChoiceCorrect && !isChoicePicked ? "opacity-60" : ""} ${tokens.inset}`}
+                    style={activeStyle}
+                  >
+                    <span className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border text-[10px] font-bold ${dark ? "border-white/15 text-gray-200" : "border-black/15 text-gray-700"}`}>
+                      {String.fromCharCode(65 + index)}
+                    </span>
+                    <span className="flex-1">{choice}</span>
+                    {picked !== null && isChoiceCorrect ? <Check size={16} className="text-green-500" /> : null}
+                    {picked !== null && isChoicePicked && !isChoiceCorrect ? <X size={16} className="text-red-500" /> : null}
+                  </button>
+                );
+              })}
+            </div>
+
+            {picked !== null ? (
+              <div className="mt-5 space-y-3">
+                <div className={`rounded-[22px] border px-4 py-3 text-xs leading-6 ${isCorrect ? "border-green-500/30 bg-green-500/10 text-green-200" : "border-red-500/30 bg-red-500/10 text-red-200"}`}>
+                  <strong>{isCorrect ? `${ui.labels.correctAnswer} ` : `${ui.labels.incorrectAnswer} `}</strong>
+                  {question.explain}
+                </div>
+
+                <div className={`${tokens.soft} rounded-[24px] border p-4`}>
+                  <SurfaceKicker tone="purple">{ui.labels.answerReview}</SurfaceKicker>
+                  <div className="mt-4">
+                    <div className="text-xs font-semibold text-green-500">{ui.labels.whyThisIsCorrect}</div>
+                    <div className={`mt-2 text-xs leading-6 ${tokens.muted}`}>{question.correctReview ?? buildCorrectReview(question, note)}</div>
+                  </div>
+
+                  <div className="mt-4">
+                    <div className="text-xs font-semibold" style={{ color: "var(--ibm-purple-40)" }}>{ui.labels.optionBreakdown}</div>
+                    <div className="mt-3 space-y-2">
+                      {choiceReviews.map((item, reviewIndex) => (
+                        <div
+                          key={`${question.id}-review-${reviewIndex}`}
+                          className={`rounded-[20px] border px-4 py-3 ${item.isCorrect ? "border-green-500/30 bg-green-500/10" : tokens.inset}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border text-[10px] font-bold ${item.isCorrect ? "border-green-500 text-green-500" : dark ? "border-white/15 text-gray-200" : "border-black/15 text-gray-700"}`}>
+                              {String.fromCharCode(65 + reviewIndex)}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <div className="text-xs font-semibold">{item.choice}</div>
+                              <div className={`mt-1 text-[11px] ${item.isCorrect ? "text-green-400" : tokens.muted}`}>
+                                {item.isCorrect ? ui.labels.whyThisIsCorrect : ui.labels.whyThisIsNotBest}
+                              </div>
+                              <div className={`mt-2 text-xs leading-6 ${item.isCorrect ? "text-green-200" : tokens.muted}`}>
+                                {item.reason}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {picked !== null ? (
+              <div className="mt-5 flex justify-end">
+                <button
+                  onClick={next}
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white transition hover:opacity-95"
+                  style={{ backgroundColor: "var(--ibm-blue-60)" }}
+                >
+                  {idx + 1 >= pool.length ? ui.labels.seeResults : ui.actions.next}
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
-      </div>
+      </SurfaceCard>
     </div>
   );
 }
 
+function FilterPill({ dark, active, onClick, tone, label }) {
+  const tokens = getSurfaceTokens(dark);
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded-full border px-3 py-2 text-xs font-semibold transition ${active ? "text-white" : tokens.chip}`}
+      style={active ? { backgroundColor: tone, borderColor: tone } : undefined}
+    >
+      {label}
+    </button>
+  );
+}
+
 function buildCorrectReview(question, note) {
-  return [
-    question.explain,
-    note?.explanation,
-    note?.examCue,
-  ].filter(Boolean).join(" ");
+  return [question.explain, note?.explanation, note?.examCue].filter(Boolean).join(" ");
 }
 
 function buildChoiceReason({ question, choice, index, objective, note }) {
@@ -336,12 +373,8 @@ function buildChoiceReason({ question, choice, index, objective, note }) {
   }
 
   const correctChoice = question.choices[question.answer];
-  const objectiveFocus = objective?.title
-    ? `This question is testing ${objective.title.toLowerCase()}.`
-    : "";
-  const trap = note?.pitfalls?.[0]
-    ? `Common trap: ${note.pitfalls[0]}`
-    : "";
+  const objectiveFocus = objective?.title ? `This question is testing ${objective.title.toLowerCase()}.` : "";
+  const trap = note?.pitfalls?.[0] ? `Common trap: ${note.pitfalls[0]}` : "";
 
   return [
     `${choice} does not best match what the prompt is asking for.`,
