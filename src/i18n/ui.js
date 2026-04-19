@@ -3,6 +3,7 @@ export const UI_COPY = {
     languageName: "English",
     appTitle: "Vault Study Hub",
     views: {
+      home: "Home",
       guide: "Guide",
       map: "Mind Map",
       grid: "Grid",
@@ -128,12 +129,63 @@ export const UI_COPY = {
       mapExamChain: "Follow the exam chain first: auth -> token -> policy -> secret engine -> lease.",
       mapIntroBody:
         "Use the connections to remember the high-value contrasts the exam repeats: Transit is still a secrets engine, architecture decisions drive deployment choices, and Vault Agent or VSO still depend on auth and secret-delivery flows.",
+      mixedReview: "Mixed review",
+    },
+    home: {
+      eyebrow: "Vault Associate (003)",
+      title: "Study Vault the way the exam expects you to think about it.",
+      intro:
+        "A single study surface for the official objectives: deep guide notes, mind-map review, domain drilldowns, flashcards, stats, and a larger practice bank built around the current Vault 1.16 exam scope.",
+      primaryCta: "Open guide",
+      secondaryCta: "Start quiz",
+      tertiaryCta: "Explore domains",
+      questionBank: "Question bank",
+      questionBankNote: "Balanced across domains with bonus mixed review prompts.",
+      localProgress: "Local progress",
+      localProgressNote: "Persists in this browser with no account or login.",
+      objectiveDepth: "Objective depth",
+      objectiveDepthNote: "Every official objective has explanation, use case, example, exam cue, and trap notes.",
+      snapshotTitle: "Exam snapshot",
+      snapshotBody:
+        "Vault 1.16 scope, 9 domains, 40 official objectives, bilingual UI, and a practice flow that moves from understanding to recall.",
+      nextFocusTitle: "Start where you are",
+      nextFocusBody: "These are the best next domains to open if you want the fastest study payoff from your current progress.",
+      studySurfacesTitle: "Study surfaces",
+      studySurfacesBody: "Pick the surface that matches the kind of studying you need right now.",
+      routesTitle: "Suggested routes",
+      routeOneTitle: "First pass",
+      routeOneBody:
+        "Read the Guide, then open the Mind Map until auth -> token -> policy -> secret engine -> lease feels automatic.",
+      routeTwoTitle: "Focused review",
+      routeTwoBody:
+        "Use Grid and domain notes to target weak areas, then switch to Flashcards to turn recognition into spoken recall.",
+      routeThreeTitle: "Exam rehearsal",
+      routeThreeBody:
+        "Run the domain-filtered Quiz, review every explanation, and use Stats to see what is really covered.",
+      domainsTitle: "Explore domains",
+      domainsBody:
+        "Jump directly into any exam domain with progress, question count, and a fast reminder of the trap to watch for.",
+      persistenceTitle: "No login, still persistent",
+      persistenceBody:
+        "Study progress, theme, and language stay in local storage on this browser. Clearing browser data resets them.",
+      openDomain: "Open domain",
+      questionsForDomain: (count) => `${count} question${count === 1 ? "" : "s"}`,
+      modes: {
+        guide: "Narrative walkthrough of the exam, domain mental models, and official study links.",
+        map: "Visualize the relationships the exam repeats and jump into notes from the graph.",
+        grid: "Scan every domain quickly with focus, trap, progress, and direct drill-in access.",
+        cheat: "Run a compressed cram pass using short anchors and traps per objective.",
+        flash: "Force active recall with prompts, answers, exam cues, and real use cases.",
+        quiz: "Practice against a larger question bank with domain filters and answer explanations.",
+        stats: "See local study progress, objective coverage, and question distribution by domain.",
+      },
     },
   },
   "pt-BR": {
     languageName: "Português (Brasil)",
     appTitle: "Hub de Estudos Vault",
     views: {
+      home: "Início",
       guide: "Guia",
       map: "Mapa Mental",
       grid: "Grade",
@@ -258,6 +310,56 @@ export const UI_COPY = {
       mapExamChain: "Siga primeiro a cadeia da prova: auth -> token -> policy -> secret engine -> lease.",
       mapIntroBody:
         "Use as conexões para lembrar os contrastes de alto valor que a prova repete: Transit continua sendo um secrets engine, decisões de arquitetura orientam o deploy, e Vault Agent ou VSO ainda dependem de auth e de fluxos de entrega de segredos.",
+      mixedReview: "Revisão mista",
+    },
+    home: {
+      eyebrow: "Vault Associate (003)",
+      title: "Estude Vault do jeito que a prova espera que você pense.",
+      intro:
+        "Uma superfície única de estudo para os objetivos oficiais: guia aprofundado, revisão por mapa mental, drilldown por domínio, flashcards, estatísticas e um banco maior de questões alinhado ao escopo atual do Vault 1.16.",
+      primaryCta: "Abrir guia",
+      secondaryCta: "Começar quiz",
+      tertiaryCta: "Explorar domínios",
+      questionBank: "Banco de questões",
+      questionBankNote: "Balanceado entre os domínios com perguntas extras de revisão mista.",
+      localProgress: "Progresso local",
+      localProgressNote: "Fica salvo neste navegador sem conta nem login.",
+      objectiveDepth: "Profundidade dos objetivos",
+      objectiveDepthNote: "Cada objetivo oficial tem explicação, caso de uso, exemplo, sinal de prova e armadilha.",
+      snapshotTitle: "Resumo da prova",
+      snapshotBody:
+        "Escopo Vault 1.16, 9 domínios, 40 objetivos oficiais, interface bilíngue e um fluxo de estudo que leva do entendimento para a lembrança ativa.",
+      nextFocusTitle: "Comece de onde você está",
+      nextFocusBody: "Estes são os melhores próximos domínios para abrir se você quiser o maior ganho de estudo a partir do seu progresso atual.",
+      studySurfacesTitle: "Superfícies de estudo",
+      studySurfacesBody: "Escolha a superfície que combina com o tipo de estudo que você precisa agora.",
+      routesTitle: "Rotas sugeridas",
+      routeOneTitle: "Primeira passada",
+      routeOneBody:
+        "Leia o Guia e depois abra o Mapa Mental até auth -> token -> policy -> secret engine -> lease ficar automático.",
+      routeTwoTitle: "Revisão focada",
+      routeTwoBody:
+        "Use Grade e notas do domínio para atacar pontos fracos, depois mude para Flashcards para transformar reconhecimento em lembrança falada.",
+      routeThreeTitle: "Simulação de prova",
+      routeThreeBody:
+        "Use o Quiz filtrado por domínio, revise cada explicação e acompanhe nas Estatísticas o que realmente foi coberto.",
+      domainsTitle: "Explorar domínios",
+      domainsBody:
+        "Entre direto em qualquer domínio da prova com progresso, número de questões e um lembrete rápido da armadilha principal.",
+      persistenceTitle: "Sem login, mas persistente",
+      persistenceBody:
+        "Progresso de estudo, tema e idioma ficam salvos no armazenamento local deste navegador. Limpar os dados do navegador reinicia tudo.",
+      openDomain: "Abrir domínio",
+      questionsForDomain: (count) => `${count} questão${count === 1 ? "" : "ões"}`,
+      modes: {
+        guide: "Visão narrativa da prova, modelos mentais dos domínios e links oficiais de estudo.",
+        map: "Visualize as relações que a prova repete e abra notas direto do gráfico.",
+        grid: "Passe rapidamente por todos os domínios com foco, armadilha, progresso e acesso direto.",
+        cheat: "Faça uma passada curta de revisão usando âncoras e armadilhas por objetivo.",
+        flash: "Force lembrança ativa com prompts, respostas, sinais de prova e casos de uso reais.",
+        quiz: "Pratique com um banco maior de questões, filtros por domínio e explicações das respostas.",
+        stats: "Veja progresso local, cobertura dos objetivos e distribuição de questões por domínio.",
+      },
     },
   },
 };

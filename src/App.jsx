@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Search, Moon, Sun, BookOpen, LayoutGrid, ArrowLeft, Map, Brain, Zap, BarChart3, KeyRound, Trash2, FileText, Languages,
+  Search, Moon, Sun, BookOpen, LayoutGrid, ArrowLeft, Map, Brain, Zap, BarChart3, KeyRound, Trash2, FileText, Languages, House,
 } from "lucide-react";
 import { usePersistedState } from "./hooks/usePersistedState.js";
 import RadialMap from "./components/RadialMap.jsx";
@@ -13,18 +13,20 @@ import SearchResults from "./components/SearchResults.jsx";
 import StudyTimer from "./components/StudyTimer.jsx";
 import StatsDashboard from "./components/StatsDashboard.jsx";
 import StudyGuide from "./components/StudyGuide.jsx";
+import HomePage from "./components/HomePage.jsx";
 import { useLocale } from "./i18n/LocaleContext.jsx";
 import { readinessLabel } from "./i18n/ui.js";
 
 export default function App() {
   const { locale, setLocale, ui, languages, domains, objectiveGuide, totalObjectives } = useLocale();
   const [dark, setDark] = usePersistedState("vh.dark", true);
-  const [view, setView] = useState("guide");
+  const [view, setView] = useState("home");
   const [activeDomain, setActiveDomain] = useState(null);
   const [expandedObj, setExpandedObj] = useState({});
   const [studied, setStudied] = usePersistedState("vh.studied", {});
   const [search, setSearch] = useState("");
   const VIEWS = useMemo(() => ([
+    ["home", House, ui.views.home],
     ["guide", FileText, ui.views.guide],
     ["map", Map, ui.views.map],
     ["grid", LayoutGrid, ui.views.grid],
@@ -70,17 +72,17 @@ export default function App() {
 
   // Keyboard shortcuts
   useEffect(() => {
+    const viewByKey = Object.fromEntries(VIEWS.map(([viewId], index) => [String(index + 1), viewId]));
     const onKey = (e) => {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
-      const map = { "1": "guide", "2": "map", "3": "grid", "4": "cheat", "5": "flash", "6": "quiz", "7": "stats" };
-      if (map[e.key]) { setView(map[e.key]); setActiveDomain(null); setSearch(""); }
+      if (viewByKey[e.key]) { setView(viewByKey[e.key]); setActiveDomain(null); setSearch(""); }
       if (e.key === "/") { e.preventDefault(); document.getElementById("search-input")?.focus(); }
       if (e.key === "Escape") { setActiveDomain(null); setSearch(""); }
       if (e.key.toLowerCase() === "t") { setDark((d) => !d); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [setDark]);
+  }, [VIEWS, setDark]);
 
   const openDomain = (d) => { setActiveDomain(d); };
   const resetProgress = () => {
@@ -192,7 +194,7 @@ export default function App() {
           {pct}% · {readiness}
         </span>
         <span className="text-[10px] text-gray-400 ml-auto hidden md:inline">
-          {ui.labels.shortcuts}: <kbd className="px-1 bg-ink-400 rounded">1–7</kbd> {ui.labels.viewsShortcut} ·
+          {ui.labels.shortcuts}: <kbd className="px-1 bg-ink-400 rounded">1–{VIEWS.length}</kbd> {ui.labels.viewsShortcut} ·
           <kbd className="px-1 bg-ink-400 rounded ml-1">/</kbd> {ui.labels.search} ·
           <kbd className="px-1 bg-ink-400 rounded ml-1">T</kbd> {ui.labels.theme} ·
           <kbd className="px-1 bg-ink-400 rounded ml-1">Esc</kbd> {ui.labels.backShortcut}
@@ -227,6 +229,16 @@ export default function App() {
 
         {!showingSearch && !showingDetail && view === "map" && (
           <RadialMap studied={studied} onSelect={openDomain} dark={dark} domainProgress={domainProgress} />
+        )}
+
+        {!showingSearch && !showingDetail && view === "home" && (
+          <HomePage
+            dark={dark}
+            studied={studied}
+            domainProgress={domainProgress}
+            onOpenDomain={openDomain}
+            onSelectView={setView}
+          />
         )}
 
         {!showingSearch && !showingDetail && view === "guide" && (

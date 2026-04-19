@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Check, X, RotateCcw, ChevronRight, Trophy } from "lucide-react";
-import { shuffle } from "../data/quiz.js";
+import { getQuestionDomain, shuffle } from "../data/quiz.js";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 
 export default function QuizMode({ dark }) {
@@ -21,7 +21,7 @@ export default function QuizMode({ dark }) {
     const ids = order
       .map((id) => quiz.find((q) => q.id === id))
       .filter(Boolean)
-      .filter((q) => filter === "all" || q.obj.startsWith(String(filter)));
+      .filter((q) => filter === "all" || getQuestionDomain(q) === String(filter));
     return ids;
   }, [filter, order, quiz]);
   const objectiveLookup = useMemo(
@@ -29,6 +29,14 @@ export default function QuizMode({ dark }) {
     [allObjectives]
   );
   const coveredObjectives = useMemo(() => new Set(quiz.map((question) => question.obj)).size, [quiz]);
+  const reviewCount = useMemo(
+    () => quiz.filter((question) => getQuestionDomain(question) === "review").length,
+    [quiz]
+  );
+  const activeDomain = useMemo(
+    () => domains.find((domain) => String(domain.id) === String(filter)),
+    [domains, filter]
+  );
 
   const q = pool[idx];
   const objective = q ? objectiveLookup[q.obj] : null;
@@ -99,7 +107,7 @@ export default function QuizMode({ dark }) {
           className={`text-[11px] px-2.5 py-1 rounded border ${filter === "all" ? "bg-violet-500 text-white border-violet-500" : `${card} ${brd}`}`}
         >{ui.labels.all} ({quiz.length})</button>
         {domains.map((d) => {
-          const n = quiz.filter((q) => q.obj.startsWith(String(d.id))).length;
+          const n = quiz.filter((question) => getQuestionDomain(question) === String(d.id)).length;
           if (!n) return null;
           return (
             <button
@@ -110,11 +118,33 @@ export default function QuizMode({ dark }) {
             >{d.icon} D{d.id} ({n})</button>
           );
         })}
+        {reviewCount > 0 && (
+          <button
+            onClick={() => reset("review")}
+            className={`text-[11px] px-2.5 py-1 rounded border ${filter === "review" ? "bg-emerald-500 text-white border-emerald-500" : `${card} ${brd}`}`}
+          >
+            {ui.labels.mixedReview} ({reviewCount})
+          </button>
+        )}
       </div>
 
       <div className={`text-[11px] ${t2} mb-3`}>
-        {ui.labels.singleAnswerMode} · {coveredObjectives} / {totalObjectives} {ui.labels.objectives}
+        {ui.labels.singleAnswerMode} · {ui.home.questionsForDomain(quiz.length)} · {coveredObjectives} / {totalObjectives} {ui.labels.objectives}
       </div>
+
+      {(activeDomain || filter === "review") && (
+        <div className={`${card} border ${brd} rounded-2xl p-4 mb-4`}>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-400">
+            {filter === "review" ? ui.labels.mixedReview : `${ui.labels.domain} ${activeDomain?.id}`}
+          </div>
+          <div className="text-sm font-semibold mt-2">
+            {filter === "review" ? ui.home.questionBankNote : activeDomain?.label}
+          </div>
+          <div className={`text-xs leading-6 mt-2 ${t2}`}>
+            {filter === "review" ? ui.labels.mapExamChain : activeDomain?.summary}
+          </div>
+        </div>
+      )}
 
       {/* Progress */}
       <div className={`text-[11px] ${t2} mb-2 flex justify-between`}>

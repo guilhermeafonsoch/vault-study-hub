@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -26,6 +26,11 @@ body {
   line-height: 1.55;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.display-font {
+  font-family: "Space Grotesk", "Inter", system-ui, sans-serif;
+  letter-spacing: -0.03em;
 }
 
 @media (prefers-reduced-motion: reduce) {

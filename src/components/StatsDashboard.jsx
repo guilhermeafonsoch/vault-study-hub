@@ -1,4 +1,5 @@
 import { CheckCircle2 } from "lucide-react";
+import { getQuestionDomain } from "../data/quiz.js";
 import { useLocale } from "../i18n/LocaleContext.jsx";
 
 export default function StatsDashboard({ studied, dark }) {
@@ -68,7 +69,7 @@ export default function StatsDashboard({ studied, dark }) {
           {domains.map((d) => {
             const done = d.objectives.filter((o) => studied[o.id]).length;
             const p = Math.round((done / d.objectives.length) * 100);
-            const quizCount = quiz.filter((question) => question.obj.startsWith(String(d.id))).length;
+            const quizCount = quiz.filter((question) => getQuestionDomain(question) === String(d.id)).length;
             return (
               <div key={d.id}>
                 <div className="flex items-center gap-2 mb-1">
